@@ -5,13 +5,6 @@ export default defineConfig({
   plugins: [react()],
   build: {
     target: 'esnext',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          rollupAndroidArmEabi: ['@rollup/rollup-android-arm-eabi'],
-        },
-      },
-    },
   },
 });
 
