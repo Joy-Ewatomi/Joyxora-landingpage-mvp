@@ -169,7 +169,7 @@ const Comparison: React.FC = () => {
 
      <div className="mt-12 text-center">
   <button
-    onClick={() => alert("🚧 MVP not yet available — stay tuned!")}
+    onClick={() => alert("🚧 MVP not yet available #stay tuned!")}
     className="px-10 py-4 rounded-2xl bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradientTo text-black font-extrabold hover:scale-105 transition-transform"
   >
     🔐 Check Out the MVP

@@ -1,10 +1,10 @@
 
 import React from "react";
-import { motion } from "framer-motion";
+import {motion, easeOut} from "framer-motion";
 
 const footerVariant = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: easeOut } },
 };
 
 const Footer: React.FC = () => {
@@ -54,7 +54,11 @@ const Footer: React.FC = () => {
   Become a Funder
 </a>
 
-          <a href="/mvp" className="hover:text-joyxora-green transition">
+          <a href="#"
+         onClick={(e) => {
+         e.preventDefault();
+         alert("🚧 MVP not yet available #stay tuned!")}} 
+          className="hover:text-joyxora-green transition">
             Check MVP
           </a>
         </div>
