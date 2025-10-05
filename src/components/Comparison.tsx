@@ -57,7 +57,7 @@ const WaitlistForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = 
     if (!isValidEmail(email)) return onDone(false, "Please enter a valid email");
     setLoading(true);
     try {
-      const res = await fetch("https://joyxora-landingpage-mvp-backend-production.up.railway.app/waitlist", {
+      const res = await fetch("https://joyxora-landingpage-mvp-backend-production.up.railway.app/Waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), email: email.trim() }),
@@ -96,7 +96,7 @@ const FunderForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({
     if (!isValidEmail(email)) return onDone(false, "Please enter a valid email");
     setLoading(true);
     try {
-      const res = await fetch("https://joyxora-landingpage-mvp-backend-production.up.railway.app/funder", {
+      const res = await fetch("https://joyxora-landingpage-mvp-backend-production.up.railway.app/Funder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), email: email.trim(), amount: amount.trim() }),
