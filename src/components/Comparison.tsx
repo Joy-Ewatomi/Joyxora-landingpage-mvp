@@ -80,7 +80,7 @@ const WaitlistForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = 
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -139,7 +139,7 @@ const FunderForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
