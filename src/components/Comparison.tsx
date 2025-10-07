@@ -66,7 +66,7 @@ const WaitlistForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = 
     setLoading(true);
 
     try {
-      const res = await fetch(`${BASE_URL}api/Waitlist`,{...} {
+      const res = await fetch(`${BASE_URL}api/Waitlist`,{...}, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), email: email.trim() }),
@@ -121,7 +121,7 @@ const FunderForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({
     setLoading(true);
 
     try {
-   const res = await fetch(`${BASE_URL}api/Funder`, {...} {
+   const res = await fetch(`${BASE_URL}api/Funder`, {...}, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
