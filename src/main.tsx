@@ -16,7 +16,7 @@ if (rootEl) {
           <Route path="/" element={<App />} />
 
           {/* MVP page at /Landing */}
-          <Route path="/Landing" element={<h1>MVP Works ✅</h1>} />
+          <Route path="/Landing" element={<Landing  />} />
         </Routes>
       </Router>
     </React.StrictMode>
