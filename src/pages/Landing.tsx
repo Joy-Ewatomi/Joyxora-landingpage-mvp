@@ -65,16 +65,22 @@ const Landing: React.FC = () => {
               Your Toolkit for Security and Privacy.
             </p>
 
-            <button className="bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradient-To text-white font-semibold py-3 px-6 sm:px-8 rounded-lg hover:scale-105 hover:shadow-xl transition-all duration-300 mt-4">
+            <button className="bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradient-To text-white font-semibold py-3 px-6 sm:px-8 rounded-lg hover:scale-105 hover:shadow-xl transition-all duration-300 mt-4"	
+	     onClick={() => alert("Coming soon! Join the waitlist to be notified when we launch. 🚀")}
+            >
               Get Started
             </button>
 
             <p className="text-joyxora-textMuted text-sm">
               Already have an account?{" "}
               <a
-                href="/signin"
+                href="#"
                 className="text-joyxora-green underline hover:text-joyxora-green-dark transition"
-              >
+   		 onClick={(e) => {
+     		 e.preventDefault();
+     		 alert("⏳ Sign in coming soon! We're building something amazing.");
+   		 }}
+		>
                 Sign in
               </a>
             </p>
