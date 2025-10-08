@@ -81,7 +81,7 @@ const WaitlistForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = 
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -122,7 +122,7 @@ const FunderForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({
     setLoading(true);
 
     try {
-   const res = await fetch(`${BASE_URL}api/Funder`, {
+      const res = await fetch(`${BASE_URL}api/Funder`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -140,7 +140,7 @@ const FunderForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -176,6 +176,7 @@ const FunderForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({
 
 // ✅ Main Comparison component
 const Comparison: React.FC = () => {
+  const navigate = useNavigate(); // Step 1: Initialize useNavigate
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [showFunder, setShowFunder] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -239,18 +240,14 @@ const Comparison: React.FC = () => {
       </div>
 
       {/* MVP Button */}
-     const navigate = useNavigate(); // Step 1: Initialize useNavigate
-
-    <div className="mt-12 text-center">
-      <button
-        onClick={() => navigate('/Landing')} // Step 3: Navigate to Landing
-        className="px-10 py-4 rounded-2xl bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradientTo text-black font-extrabold hover:scale-105 transitio>
-      >
-        🔐 Check Out the MVP
-      </button>
-    </div>
-  );
-};
+      <div className="mt-12 text-center">
+        <button
+          onClick={() => navigate('/Landing')} // Navigate to Landing
+          className="px-10 py-4 rounded-2xl bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradientTo text-black font-extrabold hover:scale-105 transition-transform"
+        >
+          🔐 Check Out the MVP
+        </button>
+      </div>
 
       {/* Toast Notification */}
       {toast && (
