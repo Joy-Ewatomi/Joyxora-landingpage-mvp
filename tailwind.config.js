@@ -9,6 +9,8 @@ module.exports = {
       colors: {
         joyxora: {
           // 🔹 Core brand
+	 darks:	"#0d1b17",
+	 darker: "#0b1d22",
           black: "#000000",
           dark: "#0A0A0A",         // main dark background
           gray: "#1F1F1F",         // section background
