@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 
 // Single bundle import - includes all Swiper styles
-import "swiper/css/bundle";
+import "swiper/swiper-bundle.css";
 
 const features = [
   {
