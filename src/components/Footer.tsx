@@ -1,6 +1,7 @@
 
 import React from "react";
 import {motion, easeOut} from "framer-motion";
+const navigate = "react-router-dom";
 
 const footerVariant = {
   hidden: { opacity: 0, y: 20 },
@@ -54,13 +55,16 @@ const Footer: React.FC = () => {
   Become a Funder
 </a>
 
-          <a href="#"
-         onClick={(e) => {
-         e.preventDefault();
-         alert("🚧 MVP not yet available #stay tuned!")}} 
-          className="hover:text-joyxora-green transition">
-            Check MVP
-          </a>
+           <a 
+      href="#"
+     className="hover:text-joyxora-green transition cursor-pointer"
+      onClick={(e) => {
+        e.preventDefault(); 
+        navigate("/Landing");
+      }}
+    >
+      Check MVP
+    </a>
         </div>
 
         {/* Right: Socials */}
