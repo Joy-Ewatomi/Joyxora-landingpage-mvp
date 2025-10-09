@@ -1,14 +1,16 @@
-
 import React from "react";
 import {motion, easeOut} from "framer-motion";
-const navigate = "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+import Landing from "../pages/Landing";
 
 const footerVariant = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: easeOut } },
 };
 
+
 const Footer: React.FC = () => {
+const navigate = useNavigate();
   return (
     <motion.footer
       className="w-full bg-joyxora-dark text-joyxora-textMuted py-10 px-6 md:px-16 lg:px-24"

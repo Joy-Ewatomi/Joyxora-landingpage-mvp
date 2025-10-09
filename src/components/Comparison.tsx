@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import Landing from "../pages/Landing";
 
 // ✅ Email validation
 function isValidEmail(email: string) {
@@ -176,7 +177,7 @@ const FunderForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({
 
 // ✅ Main Comparison component
 const Comparison: React.FC = () => {
-  const navigate = useNavigate(); // Step 1: Initialize useNavigate
+const navigate = useNavigate();
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [showFunder, setShowFunder] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
