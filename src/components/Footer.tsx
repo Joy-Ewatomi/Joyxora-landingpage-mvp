@@ -61,7 +61,7 @@ const navigate = useNavigate();
      className="hover:text-joyxora-green transition cursor-pointer"
       onClick={(e) => {
         e.preventDefault(); 
-        navigate("/Landing");
+        navigate("/landing");
       }}
     >
       Check MVP

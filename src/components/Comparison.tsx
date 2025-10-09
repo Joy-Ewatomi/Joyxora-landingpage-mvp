@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-
 // ✅ Email validation
 function isValidEmail(email: string) {
   return /\S+@\S+\.\S+/.test(email);
@@ -243,7 +242,7 @@ const navigate = useNavigate();
       {/* MVP Button */}
       <div className="mt-12 text-center">
         <button
-	onClick={() => navigate("/Landing")}
+	onClick={() => navigate("/landing")}
           className="px-10 py-4 rounded-2xl bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradientTo text-black font-extrabold hover:scale-105 transition-transform"
         >
           🔐 Check Out the MVP
