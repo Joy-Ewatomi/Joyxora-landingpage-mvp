@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import Landing from "../pages/Landing";
+
 
 // ✅ Email validation
 function isValidEmail(email: string) {

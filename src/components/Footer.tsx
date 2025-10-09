@@ -1,7 +1,6 @@
 import React from "react";
 import {motion, easeOut} from "framer-motion";
 import { useNavigate } from 'react-router-dom';
-import Landing from "../pages/Landing";
 
 const footerVariant = {
   hidden: { opacity: 0, y: 20 },
