@@ -29,14 +29,14 @@ const Dashboard: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-r from-joyxora-darks to-joyxora-darker flex items-center justify-center">
         <div className="text-joyxora-green text-xl">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-joyxora-darks to-joyxora-darker">
+    <div className="min-h-screen bg-gradient-to-r from-joyxora-darks to-joyxora-darker">
       {/* Header */}
       <header className="bg-joyxora-dark backdrop-blur-lg border-b border-joyxora-green">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/30 transition"
+                className="bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradient-To text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/30 transition"
               >
                 Logout
               </button>
