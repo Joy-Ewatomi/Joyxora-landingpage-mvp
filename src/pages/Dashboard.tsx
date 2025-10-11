@@ -48,13 +48,13 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/profile')}
-                className="text-gray-300 hover:text-green-500 transition"
+                className="text-joyxora-green hover:joyxora-gradientTo transition"
               >
                 Profile
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradient-To text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/30 transition"
+                className="bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradient-To text-joyxora-darks px-4 py-2 rounded-lg hover:bg-red-500/30 transition"
               >
                 Logout
               </button>
@@ -69,7 +69,7 @@ const Dashboard: React.FC = () => {
           <h2 className="text-3xl font-bold text-joyxora-green mb-2">
             Welcome back, {user.email?.split('@')[0] || user.username}! 👋
           </h2>
-          <p className="text-joyxora-green-400">
+          <p className="text-joyxora-green">
             Your secure dashboard is coming soon
           </p>
         </div>
