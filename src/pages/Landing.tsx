@@ -379,7 +379,7 @@ const Landing: React.FC = () => {
     <>
       <section className="w-full min-h-screen bg-gradient-to-r from-gray-900 to-black text-gray-300 flex items-center justify-center">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 lg:gap-12">
 
             {/* LEFT SIDE */}
             <div className="w-full lg:w-1/2 flex flex-col items-center text-center space-y-4 sm:space-y-6">
