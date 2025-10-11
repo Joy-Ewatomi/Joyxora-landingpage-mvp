@@ -127,7 +127,7 @@ const SignupForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({
 
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/signup`, {
+      const res = await fetch(`${BASE_URL}api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -192,7 +192,7 @@ const ForgotPasswordForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void
 
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/forgot-password`, {
+      const res = await fetch(`${BASE_URL}api/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
