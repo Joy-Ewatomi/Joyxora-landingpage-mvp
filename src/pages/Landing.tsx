@@ -41,8 +41,7 @@ const Modal: React.FC<ModalProps> = ({ title, onClose, children }) => {
 
 // ✅ Backend base URL
 const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  "https://joyxora-landingpage-mvp-backend-production.up.railway.app/";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 // ==================== SIGNIN FORM ====================
 const SigninForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void; onForgot: () => void }> = ({
