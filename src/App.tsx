@@ -20,12 +20,10 @@ const Home: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <Router>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/landing" element={<Landing />} />
       </Routes>
-    </Router>
   );
 };
 
