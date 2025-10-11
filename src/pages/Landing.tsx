@@ -1,17 +1,53 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Mascot from "../assets/mascot.png";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
+
+// Import Swiper styles
 import "swiper/swiper-bundle.css";
 
-// ✅ Email validation helper
-function isValidEmail(email: string) {
+// ==================== TYPES ====================
+type ModalProps = { 
+  title?: string; 
+  onClose: () => void; 
+  children: React.ReactNode 
+};
+
+type ToastType = "success" | "error";
+
+// ==================== HELPERS ====================
+function isValidEmail(email: string): boolean {
   return /\S+@\S+\.\S+/.test(email);
 }
 
-// ✅ Modal Component
-type ModalProps = { title?: string; onClose: () => void; children: React.ReactNode };
+// ==================== CONFIGURATION ====================
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
+const features = [
+  { 
+    icon: "🔐", 
+    title: "Bank-Level Encryption", 
+    description: "Encrypt files, folders, and apps with military-grade AES & RSA encryption. Your data, your keys." 
+  },
+  { 
+    icon: "💬", 
+    title: "Private Conversations (xorachat)", 
+    description: "Message securely without phone numbers. End-to-end encrypted. Even we can't read your messages." 
+  },
+  { 
+    icon: "🎭", 
+    title: "Hide in Plain Sight (disguise-mode)", 
+    description: "Transform Joyxora into a calculator, notes app, or game. Return with secret gestures." 
+  },
+  { 
+    icon: "🐱", 
+    title: "Meet XoraCat", 
+    description: "Your friendly AI guide. Get help with encryption, privacy tips, and navigate Joyxora with ease." 
+  },
+];
+
+// ==================== MODAL COMPONENT ====================
 const Modal: React.FC<ModalProps> = ({ title, onClose, children }) => {
   const backdropRef = useRef<HTMLDivElement | null>(null);
 
@@ -24,12 +60,20 @@ const Modal: React.FC<ModalProps> = ({ title, onClose, children }) => {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div ref={backdropRef} className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative max-w-md w-full mx-4 bg-joyxora-dark rounded-xl p-6 z-10">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">{title}</h3>
-          <button className="text-joyxora-textMuted" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div 
+        ref={backdropRef} 
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm" 
+        onClick={onClose} 
+      />
+      <div className="relative max-w-md w-full bg-gray-900 rounded-xl sm:rounded-2xl p-6 sm:p-8 z-10 shadow-2xl border border-green-500/20">
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <h3 className="text-lg sm:text-xl font-semibold text-white">{title}</h3>
+          <button 
+            className="text-gray-400 hover:text-white text-2xl transition w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800" 
+            onClick={onClose}
+            aria-label="Close modal"
+          >
             ✕
           </button>
         </div>
@@ -38,65 +82,92 @@ const Modal: React.FC<ModalProps> = ({ title, onClose, children }) => {
     </div>
   );
 };
-
-// ✅ Backend base URL
-const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
 // ==================== SIGNIN FORM ====================
-const SigninForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void; onForgot: () => void }> = ({
-  onDone,
-  onForgot,
-}) => {
-  const [username, setUsername] = useState("");
+interface SigninFormProps {
+  onDone: (ok: boolean, msg?: string) => void;
+  onForgot: () => void;
+}
+
+const SigninForm: React.FC<SigninFormProps> = ({ onDone, onForgot }) => {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!username.trim() || !password.trim())
-      return onDone(false, "Please enter your username and password");
+    
+    if (!email.trim() || !password.trim()) {
+      return onDone(false, "Please enter your email and password");
+    }
+
+    if (!isValidEmail(email)) {
+      return onDone(false, "Please enter a valid email");
+    }
 
     setLoading(true);
     try {
       const res = await fetch(`${BASE_URL}api/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username.trim(), password: password.trim() }),
+        body: JSON.stringify({ 
+          email: email.trim(), 
+          password: password.trim() 
+        }),
       });
 
       const data = await res.json();
-      if (res.ok && data.success) {
+      
+      if (res.ok && data.token) {
         localStorage.setItem("joyxora_token", data.token);
-        onDone(true, `Welcome back, ${data.user.username}!`);
-      } else onDone(false, data.error || "Sign-in failed");
-    } catch {
-      onDone(false, "Network error");
+        localStorage.setItem("joyxora_user", JSON.stringify(data.user));
+        onDone(true, `Welcome back!`);
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+      } else {
+        onDone(false, data.message || "Sign-in failed");
+      }
+    } catch (err) {
+      console.error('Sign in error:', err);
+      onDone(false, "Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <input
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Username"
-        className="p-3 rounded-lg bg-black/50 text-white"
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        className="p-3 rounded-lg bg-black/50 text-white"
-      />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="your@email.com"
+          className="w-full p-3 sm:p-4 rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-green-500 focus:outline-none transition"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          className="w-full p-3 sm:p-4 rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-green-500 focus:outline-none transition"
+          required
+        />
+      </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="py-3 rounded-lg bg-joyxora-green text-black font-semibold"
+        className="w-full py-3 sm:py-4 rounded-lg bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? "Signing in..." : "Sign in"}
       </button>
@@ -104,26 +175,44 @@ const SigninForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void; onForg
       <button
         type="button"
         onClick={onForgot}
-        className="text-sm text-joyxora-green underline mt-2 hover:text-joyxora-green-dark"
+        className="text-sm text-green-500 hover:text-green-400 underline transition text-center"
       >
         Forgot password?
       </button>
     </form>
   );
 };
-
 // ==================== SIGNUP FORM ====================
-const SignupForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({ onDone }) => {
+interface SignupFormProps {
+  onDone: (ok: boolean, msg?: string) => void;
+}
+
+const SignupForm: React.FC<SignupFormProps> = ({ onDone }) => {
   const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!isValidEmail(email)) return onDone(false, "Please enter a valid email");
-    if (!username.trim() || !password.trim())
-      return onDone(false, "All fields are required");
+    
+    // Validation
+    if (!isValidEmail(email)) {
+      return onDone(false, "Please enter a valid email");
+    }
+    
+    if (!password.trim()) {
+      return onDone(false, "Password is required");
+    }
+    
+    if (password.length < 8) {
+      return onDone(false, "Password must be at least 8 characters");
+    }
+    
+    if (password !== confirmPassword) {
+      return onDone(false, "Passwords do not match");
+    }
 
     setLoading(true);
     try {
@@ -132,63 +221,96 @@ const SignupForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim(),
-          username: username.trim(),
           password: password.trim(),
         }),
       });
 
       const data = await res.json();
-      if (res.ok && data.success) {
+      
+      if (res.ok && data.token) {
         localStorage.setItem("joyxora_token", data.token);
-        onDone(true, "Welcome to Joyxora!");
-      } else onDone(false, data.error || "Sign-up failed");
-    } catch {
-      onDone(false, "Network error");
+        localStorage.setItem("joyxora_user", JSON.stringify(data.user));
+        onDone(true, "Welcome to Joyxora! Please check your email to verify your account.");
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
+      } else {
+        onDone(false, data.message || "Sign-up failed");
+      }
+    } catch (err) {
+      console.error('Sign up error:', err);
+      onDone(false, "Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <input
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        className="p-3 rounded-lg bg-black/50 text-white"
-      />
-      <input
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Username"
-        className="p-3 rounded-lg bg-black/50 text-white"
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        className="p-3 rounded-lg bg-black/50 text-white"
-      />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="your@email.com"
+          className="w-full p-3 sm:p-4 rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-green-500 focus:outline-none transition"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Min. 8 characters"
+          className="w-full p-3 sm:p-4 rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-green-500 focus:outline-none transition"
+          required
+          minLength={8}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Confirm Password</label>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Confirm your password"
+          className="w-full p-3 sm:p-4 rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-green-500 focus:outline-none transition"
+          required
+        />
+      </div>
+
       <button
         type="submit"
         disabled={loading}
-        className="py-3 rounded-lg bg-joyxora-green text-black font-semibold"
+        className="w-full py-3 sm:py-4 rounded-lg bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? "Signing up..." : "Sign up"}
+        {loading ? "Creating account..." : "Create Account"}
       </button>
     </form>
   );
 };
+// ==================== FORGOT PASSWORD FORM ====================
+interface ForgotPasswordFormProps {
+  onDone: (ok: boolean, msg?: string) => void;
+}
 
-// ==================== FORGOT PASSWORD ====================
-const ForgotPasswordForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void }> = ({ onDone }) => {
+const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onDone }) => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!isValidEmail(email)) return onDone(false, "Please enter a valid email");
+    
+    if (!isValidEmail(email)) {
+      return onDone(false, "Please enter a valid email");
+    }
 
     setLoading(true);
     try {
@@ -199,133 +321,170 @@ const ForgotPasswordForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void
       });
 
       const data = await res.json();
-      if (res.ok && data.success)
-        onDone(true, "Check your email for reset instructions");
-      else onDone(false, data.error || "Reset failed");
-    } catch {
-      onDone(false, "Network error");
+      
+      if (res.ok) {
+        onDone(true, data.message || "Check your email for reset instructions");
+      } else {
+        onDone(false, data.message || "Failed to send reset email");
+      }
+    } catch (err) {
+      console.error('Forgot password error:', err);
+      onDone(false, "Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Enter your account email"
-        className="p-3 rounded-lg bg-black/50 text-white"
-      />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <p className="text-sm text-gray-400 mb-2">
+        Enter your email address and we'll send you a link to reset your password.
+      </p>
+      
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="your@email.com"
+          className="w-full p-3 sm:p-4 rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-green-500 focus:outline-none transition"
+          required
+        />
+      </div>
+
       <button
         type="submit"
         disabled={loading}
-        className="py-3 rounded-lg bg-joyxora-green text-black font-semibold"
+        className="w-full py-3 sm:py-4 rounded-lg bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? "Sending..." : "Send Reset Link"}
       </button>
     </form>
   );
 };
-
 // ==================== LANDING PAGE ====================
-const features = [
-  { icon: "🔐", title: "Bank-Level Encryption", description: "Encrypt files and folders with AES & RSA." },
-  { icon: "💬", title: "Private Conversations", description: "Chat securely. End-to-end encrypted." },
-  { icon: "🎭", title: "Hide in Plain Sight", description: "Disguise Joyxora as a calculator or notes app." },
-  { icon: "🐱", title: "Meet XoraCat", description: "Your friendly AI guide for privacy and help." },
-];
-
 const Landing: React.FC = () => {
   const [showSignin, setShowSignin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
-  const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [toast, setToast] = useState<{ type: ToastType; text: string } | null>(null);
 
-  function showToast(type: "success" | "error", text: string) {
+  function showToast(type: ToastType, text: string) {
     setToast({ type, text });
     setTimeout(() => setToast(null), 3500);
   }
 
   return (
-    <section className="w-full min-h-screen bg-gradient-to-r from-joyxora-darks to-joyxora-darker text-joyxora-textMuted flex items-center justify-center">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        <div className="flex flex-col md:flex-row gap-8 lg:gap-12 items-center justify-center">
-          {/* LEFT SIDE */}
-          <div className="w-full lg:w-1/2 flex flex-col items-center text-center space-y-4 lg:space-y-6">
-            <h1 className="text-joyxora-green font-bold text-3xl lg:text-4xl">
-              Welcome to Joyxora
-            </h1>
-            <img src={Mascot} alt="Joyxora Mascot" className="w-28 h-28 animate-bounce" />
-            <p className="text-joyxora-green text-base max-w-md leading-relaxed">
-              joyxora lets you encrypt files and apps, hide them, and chat securely without using a phone number. Fast, smart, and private with strong encryption and stealth features.
-            </p>
-            <h1 className="text-joyxora-green font-bold text-3xl lg:text-4xl">join us today!</h1>
-            <p className="text-joyxora-green font-semibold text-3xl lg:text-4xl">
-              your toolkit for security and privacy
-            </p>
+    <>
+      <section className="w-full min-h-screen bg-gradient-to-r from-gray-900 to-black text-gray-300 flex items-center justify-center">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
 
-            <button
-              onClick={() => setShowSignup(true)}
-              className="bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradientTo text-white font-semibold py-3 px-6 rounded-lg hover:scale-105 hover:shadow-xl transition-all duration-300 mt-4"
-            >
-              Get Started
-            </button>
-            <p className="text-sm">
-              Already have an account?{" "}
-              <span
-                className="text-joyxora-green underline cursor-pointer"
-                onClick={() => setShowSignin(true)}
-              >
-                Sign in
-              </span>
-            </p>
-          </div>
+            {/* LEFT SIDE */}
+            <div className="w-full lg:w-1/2 flex flex-col items-center text-center space-y-4 sm:space-y-6">
+              <h1 className="text-green-500 font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight max-w-2xl">
+                Welcome to Joyxora
+              </h1>
 
-          {/* RIGHT SIDE */}
-          <div className="w-full lg:w-1/2">
-            <Swiper
-              modules={[Autoplay, Pagination, Navigation]}
-              spaceBetween={30}
-              slidesPerView={1}
-              autoplay={{ delay: 3000, disableOnInteraction: false }}
-              pagination={{ clickable: true, dynamicBullets: true }}
-              loop
-              className="w-full"
-            >
-              {features.map((f, i) => (
-                <SwiperSlide key={i}>
-                  <div className="text-center py-8 px-4">
-                    <div className="text-6xl mb-4">{f.icon}</div>
-                    <h2 className="text-xl font-bold mb-2 text-joyxora-green">{f.title}</h2>
-                    <p className="text-joyxora-green text-sm">{f.description}</p>
-                  </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
+              <img
+                src={Mascot}
+                alt="Joyxora Mascot"
+                className="w-24 sm:w-28 md:w-32 lg:w-40 h-auto animate-bounce"
+              />
+
+              <p className="text-green-500 text-sm sm:text-base lg:text-lg leading-relaxed max-w-md px-4 sm:px-0">
+                Joyxora lets you encrypt files and apps, hide them, and chat securely without using a phone number.
+                Fast, smart, and private — with strong encryption and stealth features.
+              </p>
+
+              <h2 className="text-green-500 font-semibold text-xl sm:text-2xl md:text-3xl lg:text-4xl">
+                Join us today!
+              </h2>
+
+              <p className="text-green-500 font-medium text-base sm:text-lg lg:text-xl">
+                Your toolkit for security and privacy
+              </p>
+
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 w-full sm:w-auto px-4 sm:px-0">
+                <button
+                  onClick={() => setShowSignup(true)}
+                  className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold py-4 px-8 text-base sm:text-lg rounded-lg hover:scale-105 hover:shadow-xl transition-all duration-300"
+                >
+                  Get Started
+                </button>
+              </div>
+
+              <p className="text-xs sm:text-sm mt-2 text-gray-400 px-4 sm:px-0">
+                Already have an account?{" "}
+                <span
+                  className="text-green-500 underline cursor-pointer hover:text-green-400 font-medium"
+                  onClick={() => setShowSignin(true)}
+                >
+                  Sign in here
+                </span>
+              </p>
+            </div>
+
+            {/* RIGHT SIDE */}
+            <div className="w-full lg:w-1/2 flex justify-center px-4 sm:px-0">
+              <div className="w-full max-w-md lg:max-w-lg">
+                <Swiper
+                  modules={[Autoplay, Pagination, Navigation]}
+                  spaceBetween={20}
+                  slidesPerView={1}
+                  autoplay={{ 
+                    delay: 4000, 
+                    disableOnInteraction: false, 
+                    pauseOnMouseEnter: true 
+                  }}
+                  pagination={{ 
+                    clickable: true, 
+                    dynamicBullets: true 
+                  }}
+                  loop
+                  className="w-full"
+                >
+                  {features.map((f, i) => (
+                    <SwiperSlide key={i}>
+                      <div className="text-center py-8 sm:py-10 lg:py-12 px-4 sm:px-6">
+                        <div className="text-5xl sm:text-6xl lg:text-7xl mb-4 sm:mb-6">
+                          {f.icon}
+                        </div>
+                        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4 text-green-500">
+                          {f.title}
+                        </h3>
+                        <p className="text-green-500 text-sm sm:text-base lg:text-lg leading-relaxed">
+                          {f.description}
+                        </p>
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Toast */}
+      </section>
+    {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-lg z-50 ${
+          className={`fixed bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-xl z-50 max-w-[90vw] sm:max-w-md text-center ${
             toast.type === "success" ? "bg-green-600" : "bg-red-600"
-          } text-white`}
+          } text-white font-medium text-sm sm:text-base animate-fade-in`}
         >
           {toast.text}
         </div>
       )}
 
-      {/* Modals */}
+      {/* Sign In Modal */}
       {showSignin && (
         <Modal title="Sign in to Joyxora" onClose={() => setShowSignin(false)}>
           <SigninForm
             onDone={(ok, msg) => {
-              if (ok) setShowSignin(false);
               showToast(ok ? "success" : "error", msg || "");
+              if (ok) setShowSignin(false);
             }}
             onForgot={() => {
               setShowSignin(false);
@@ -335,28 +494,30 @@ const Landing: React.FC = () => {
         </Modal>
       )}
 
+      {/* Sign Up Modal */}
       {showSignup && (
         <Modal title="Create your Joyxora account" onClose={() => setShowSignup(false)}>
           <SignupForm
             onDone={(ok, msg) => {
-              if (ok) setShowSignup(false);
               showToast(ok ? "success" : "error", msg || "");
+              if (ok) setShowSignup(false);
             }}
           />
         </Modal>
       )}
 
+      {/* Forgot Password Modal */}
       {showForgot && (
-        <Modal title="Reset your Joyxora password" onClose={() => setShowForgot(false)}>
+        <Modal title="Reset your password" onClose={() => setShowForgot(false)}>
           <ForgotPasswordForm
             onDone={(ok, msg) => {
-              if (ok) setShowForgot(false);
               showToast(ok ? "success" : "error", msg || "");
+              if (ok) setShowForgot(false);
             }}
           />
         </Modal>
       )}
-    </section>
+    </>
   );
 };
 
