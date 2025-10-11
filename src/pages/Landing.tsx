@@ -40,7 +40,7 @@ const Modal: React.FC<ModalProps> = ({ title, onClose, children }) => {
 };
 
 // ✅ Backend base URL
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://your-railway-app-url.up.railway.app";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://joyxora-landingpage-mvp-backend-production.up.railway.app/";
 
 // ==================== SIGNIN FORM ====================
 const SigninForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void; onForgot: () => void }> = ({
@@ -258,11 +258,14 @@ const Landing: React.FC = () => {
             </h1>
             <img src={Mascot} alt="Joyxora Mascot" className="w-28 h-28 animate-bounce" />
             <p className="text-joyxora-green text-base max-w-md leading-relaxed">
-              Encrypt, chat, and hide securely with Joyxora.
+              joyxora lets you encrypt files and apps, hide them, and chat securely without using a phone number. Fast, smart, and private with strong encryption and stealth features.
             </p>
+           <h1 className="text-joyxora-green font-bold text-3xl lg:text-4xl">join us today!</h1>
+           <p className="text-joyxora-green font-semi-bold text-3xl lg:text-4xl>your toolkit for security and privacy</p>
+           
             <button
               onClick={() => setShowSignup(true)}
-              className="bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradient-To text-white font-semibold py-3 px-6 rounded-lg hover:scale-105 hover:shadow-xl transition-all duration-300 mt-4"
+              className="bg-gradient-to-r from-joyxora-gradientFrom to-joyxora-gradient-To text-white font-semibold py-3 px-6 rounded-lg hover:scale-105 hover:shadow-xl transition-alpl duration-300 mt-4"
             >
               Get Started
             </button>
