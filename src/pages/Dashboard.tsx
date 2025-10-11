@@ -85,8 +85,7 @@ const Dashboard: React.FC = () => {
             and privacy tools will be available here soon.
           </p>
           <div className="text-sm text-gray-500">
-            Q1 2026 - File encryption launches<br />
-            Q2 2026 - Secure messaging goes live
+            be patient we're cooking something nice.
           </div>
         </div>
       </main>
