@@ -59,7 +59,7 @@ const SigninForm: React.FC<{ onDone: (ok: boolean, msg?: string) => void; onForg
 
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/signin`, {
+      const res = await fetch(`${BASE_URL}api/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: username.trim(), password: password.trim() }),
