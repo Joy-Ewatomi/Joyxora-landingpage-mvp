@@ -60,10 +60,10 @@ const Modal: React.FC<ModalProps> = ({ title, onClose, children }) => {
   }, [onClose]);
 
   return (
-    <div className="inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div 
         ref={backdropRef} 
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm" 
+        className="absolute inset-0 bg-black/70" 
         onClick={onClose} 
       />
       <div className="relative max-w-md w-full bg-gray-900 rounded-xl sm:rounded-2xl p-6 sm:p-8 z-10 shadow-2xl border border-green-500/20">
