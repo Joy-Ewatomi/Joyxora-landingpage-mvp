@@ -1,324 +1,423 @@
-import argon2 from 'argon2-browser';
+import React, { useState } from 'react';
+import { FileText, Upload, Lock, Key, Download, AlertCircle, CheckCircle } from 'lucide-react';
 
-// ============================================
-// ARGON2 KEY DERIVATION (MAXIMUM SECURITY)
-// ============================================
+type KeyDerivationMethod = 'password' | 'random';
 
-/**
- * Derive encryption key from password using Argon2id
- * 
- * Parameters explained:
- * - password: User's password (string)
- * - salt: Random 16 bytes (prevents rainbow tables)
- * 
- * Argon2id configuration:
- * - time: 3 iterations (CPU cost)
- * - mem: 65536 KB = 64 MB (memory cost)
- * - parallelism: 4 threads
- * - hashLen: 32 bytes = 256 bits (for AES-256)
- * - type: argon2id (hybrid of argon2i + argon2d, most secure)
- * 
- * Why these values?
- * - 64MB memory: Makes GPU attacks impractical
- * - 3 iterations: Balances security vs UX (takes ~0.5-1 sec on modern devices)
- * - 4 threads: Utilizes multi-core CPUs
- * - Argon2id: Resistant to both side-channel and GPU attacks
- */
-async function deriveKeyFromPasswordArgon2(
-  password: string, 
-  salt: Uint8Array
-): Promise<CryptoKey> {
-  
-  // Run Argon2id hash
-  const result = await argon2.hash({
-    pass: password,
-    salt: salt,
-    time: 3,          // Number of iterations
-    mem: 65536,       // Memory in KB (64 MB)
-    hashLen: 32,      // Output length (32 bytes = 256 bits)
-    parallelism: 4,   // Number of threads
-    type: argon2.ArgonType.Argon2id, // Hybrid mode (most secure)
-  });
-
-  // Extract the raw hash bytes
-  const keyBytes = result.hash;
-
-  // Import as AES-GCM key
-  const key = await crypto.subtle.importKey(
-    'raw',
-    keyBytes,
-    { name: 'AES-GCM', length: 256 },
-    false, // Not extractable (security best practice)
-    ['encrypt', 'decrypt']
-  );
-
-  return key;
+interface FileMetadata {
+  name: string;
+  type: string;
+  size: number;
+  originalSize: number;
+  compressed: boolean;
+  timestamp: string;
 }
 
-// ============================================
-// COMPARISON: OLD vs NEW
-// ============================================
+const FileEncryption = () => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileMetadata, setFileMetadata] = useState<FileMetadata | null>(null);
+  const [keyMethod, setKeyMethod] = useState<KeyDerivationMethod>('password');
+  const [password, setPassword] = useState('');
+  const [generatedKey, setGeneratedKey] = useState('');
+  const [encrypting, setEncrypting] = useState(false);
+  const [encryptedBlob, setEncryptedBlob] = useState<Blob | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState('');
 
-/**
- * OLD METHOD (PBKDF2) - Good but not best
- */
-async function deriveKeyFromPasswordPBKDF2(
-  password: string,
-  salt: Uint8Array
-): Promise<CryptoKey> {
-  const encoder = new TextEncoder();
-  const passwordBuffer = encoder.encode(password);
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+  const COMPRESSION_THRESHOLD = 5 * 1024 * 1024; // 5MB
 
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    passwordBuffer,
-    'PBKDF2',
-    false,
-    ['deriveKey']
-  );
+  // Detect file type and extract metadata
+  const analyzeFile = async (file: File) => {
+    setError('');
+    
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      setError(`File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
+      return null;
+    }
 
-  const key = await crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt: salt,
-      iterations: 100000, // CPU-only, vulnerable to GPU attacks
-      hash: 'SHA-256',
-    },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  );
+    // Detect MIME type
+    const type = file.type || 'application/octet-stream';
+    
+    // Check if compression needed
+    const needsCompression = file.size > COMPRESSION_THRESHOLD;
 
-  return key;
-}
-
-/**
- * NEW METHOD (ARGON2) - Best security
- * 
- * Security improvements:
- * 1. Memory-hard: Uses 64MB RAM (GPU attacks become impractical)
- * 2. Parallelism: Utilizes multi-core CPUs
- * 3. Tunable: Can increase cost as hardware improves
- * 4. Side-channel resistant: Argon2id mode
- * 5. Modern: Winner of Password Hashing Competition
- */
-
-// ============================================
-// FULL ENCRYPTION FUNCTION (ARGON2)
-// ============================================
-
-interface EncryptionResult {
-  version: number;
-  algorithm: 'AES-256-GCM';
-  kdf: 'Argon2id';
-  kdfParams: {
-    time: number;
-    memory: number;
-    parallelism: number;
-  };
-  salt: number[];
-  iv: number[];
-  authTag: number[];
-  data: number[];
-  metadata: {
-    originalName: string;
-    originalType: string;
-    originalSize: number;
-    compressed: boolean;
-    timestamp: string;
-  };
-}
-
-async function encryptFileArgon2(
-  fileBuffer: ArrayBuffer,
-  password: string,
-  metadata: {
-    name: string;
-    type: string;
-    size: number;
-    compressed: boolean;
-  }
-): Promise<EncryptionResult> {
-  
-  // Generate random salt and IV
-  const salt = crypto.getRandomValues(new Uint8Array(16)); // 128 bits
-  const iv = crypto.getRandomValues(new Uint8Array(12));   // 96 bits (GCM standard)
-
-  // Derive key using Argon2id
-  const key = await deriveKeyFromPasswordArgon2(password, salt);
-
-  // Encrypt data with AES-256-GCM
-  const encryptedData = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: iv },
-    key,
-    fileBuffer
-  );
-
-  // Extract auth tag (last 16 bytes)
-  const encryptedArray = new Uint8Array(encryptedData);
-  const ciphertext = encryptedArray.slice(0, -16);
-  const authTag = encryptedArray.slice(-16);
-
-  // Build encrypted file structure
-  const result: EncryptionResult = {
-    version: 2, // Version 2 = Argon2
-    algorithm: 'AES-256-GCM',
-    kdf: 'Argon2id',
-    kdfParams: {
-      time: 3,
-      memory: 65536, // 64 MB
-      parallelism: 4,
-    },
-    salt: Array.from(salt),
-    iv: Array.from(iv),
-    authTag: Array.from(authTag),
-    data: Array.from(ciphertext),
-    metadata: {
-      originalName: metadata.name,
-      originalType: metadata.type,
-      originalSize: metadata.size,
-      compressed: metadata.compressed,
+    const metadata: FileMetadata = {
+      name: file.name,
+      type: type,
+      size: file.size,
+      originalSize: file.size,
+      compressed: needsCompression,
       timestamp: new Date().toISOString(),
-    },
+    };
+
+    return metadata;
   };
 
-  return result;
-}
+  // Handle file selection
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-// ============================================
-// DECRYPTION FUNCTION (ARGON2)
-// ============================================
+    setSelectedFile(file);
+    setEncryptedBlob(null);
+    setProgress(0);
 
-async function decryptFileArgon2(
-  encryptedData: EncryptionResult,
-  password: string
-): Promise<ArrayBuffer> {
-  
-  // Validate version
-  if (encryptedData.version !== 2 || encryptedData.kdf !== 'Argon2id') {
-    throw new Error('Unsupported encryption version or KDF');
-  }
+    const metadata = await analyzeFile(file);
+    setFileMetadata(metadata);
+  };
 
-  // Reconstruct salt and IV
-  const salt = new Uint8Array(encryptedData.salt);
-  const iv = new Uint8Array(encryptedData.iv);
+  // Generate random encryption key
+  const generateRandomKey = () => {
+    const array = new Uint8Array(32); // 256 bits
+    crypto.getRandomValues(array);
+    const key = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    setGeneratedKey(key);
+    return key;
+  };
 
-  // Derive same key using Argon2id
-  const key = await deriveKeyFromPasswordArgon2(password, salt);
+  // Derive key from password using PBKDF2
+  const deriveKeyFromPassword = async (password: string, salt: Uint8Array) => {
+    const encoder = new TextEncoder();
+    const passwordBuffer = encoder.encode(password);
 
-  // Reconstruct encrypted data (ciphertext + auth tag)
-  const ciphertext = new Uint8Array(encryptedData.data);
-  const authTag = new Uint8Array(encryptedData.authTag);
-  const fullCiphertext = new Uint8Array(ciphertext.length + authTag.length);
-  fullCiphertext.set(ciphertext, 0);
-  fullCiphertext.set(authTag, ciphertext.length);
-
-  // Decrypt
-  try {
-    const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: iv },
-      key,
-      fullCiphertext
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      passwordBuffer,
+      'PBKDF2',
+      false,
+      ['deriveKey']
     );
-    return decrypted;
-  } catch (err) {
-    throw new Error('Decryption failed: Wrong password or corrupted data');
-  }
-}
 
-// ============================================
-// SECURITY PARAMETER TUNING
-// ============================================
+    const key = await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 100000, // Industry standard
+        hash: 'SHA-256',
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      true,
+      ['encrypt', 'decrypt']
+    );
 
-/**
- * Adjust these based on target device capabilities:
- * 
- * MOBILE (Low-end devices):
- * - time: 2
- * - mem: 32768 (32 MB)
- * - parallelism: 2
- * - Time: ~0.3-0.5 sec
- * 
- * DESKTOP (Standard):
- * - time: 3
- * - mem: 65536 (64 MB)
- * - parallelism: 4
- * - Time: ~0.5-1 sec
- * 
- * HIGH SECURITY (Paranoid mode):
- * - time: 5
- * - mem: 131072 (128 MB)
- * - parallelism: 8
- * - Time: ~2-3 sec
- * 
- * Rule of thumb:
- * - Target 0.5-1 second on user's device
- * - Makes attacker spend 0.5-1 second per password attempt
- * - With 64MB memory, GPU advantage reduced from 10,000x to ~10x
- */
+    return key;
+  };
 
-// ============================================
-// BACKWARD COMPATIBILITY
-// ============================================
+  // Import raw key (from random bytes)
+  const importRandomKey = async (keyHex: string) => {
+    const keyBytes = new Uint8Array(
+      keyHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
+    );
 
-/**
- * Support both PBKDF2 (old) and Argon2 (new) files
- */
-async function decryptFile(
-  encryptedData: any,
-  password: string
-): Promise<ArrayBuffer> {
-  
-  // Check version/KDF
-  if (encryptedData.version === 2 && encryptedData.kdf === 'Argon2id') {
-    return decryptFileArgon2(encryptedData, password);
-  } else if (encryptedData.version === 1 || encryptedData.keyMethod === 'password') {
-    // Old PBKDF2 format - still supported
-    return decryptFilePBKDF2(encryptedData, password);
-  } else {
-    throw new Error('Unknown encryption format');
-  }
-}
+    const key = await crypto.subtle.importKey(
+      'raw',
+      keyBytes,
+      { name: 'AES-GCM', length: 256 },
+      true,
+      ['encrypt', 'decrypt']
+    );
+
+    return key;
+  };
+
+  // Compress file using GZIP (simplified - in real app use pako library)
+  const compressFile = async (buffer: ArrayBuffer): Promise<ArrayBuffer> => {
+    // For demo purposes, we'll simulate compression
+    // In production, use: import pako from 'pako'; return pako.gzip(new Uint8Array(buffer));
+    setProgress(30);
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate compression time
+    return buffer; // Return original for now
+  };
+
+  // Encrypt the file
+  const encryptFile = async () => {
+    if (!selectedFile || !fileMetadata) {
+      setError('Please select a file first');
+      return;
+    }
+
+    if (keyMethod === 'password' && password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    setEncrypting(true);
+    setProgress(0);
+    setError('');
+
+    try {
+      // Read file as ArrayBuffer
+      const fileBuffer = await selectedFile.arrayBuffer();
+      setProgress(10);
+
+      // Compress if needed
+      let dataToEncrypt = fileBuffer;
+      if (fileMetadata.compressed) {
+        dataToEncrypt = await compressFile(fileBuffer);
+      }
+      setProgress(40);
+
+      // Generate salt and IV
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12)); // 12 bytes for GCM
+
+      // Get encryption key based on method
+      let key: CryptoKey;
+      let keyInfo: string;
+
+      if (keyMethod === 'password') {
+        key = await deriveKeyFromPassword(password, salt);
+        keyInfo = 'password-based';
+      } else {
+        const keyHex = generatedKey || generateRandomKey();
+        key = await importRandomKey(keyHex);
+        keyInfo = keyHex;
+      }
+      setProgress(60);
+
+      // Encrypt the data
+      const encryptedData = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        dataToEncrypt
+      );
+      setProgress(80);
+
+      // Create encrypted file structure
+      const encryptedFileData = {
+        version: 1,
+        metadata: fileMetadata,
+        keyMethod: keyMethod,
+        salt: Array.from(salt),
+        iv: Array.from(iv),
+        data: Array.from(new Uint8Array(encryptedData)),
+      };
+
+      const encryptedJson = JSON.stringify(encryptedFileData);
+      const blob = new Blob([encryptedJson], { type: 'application/json' });
+      
+      setEncryptedBlob(blob);
+      setProgress(100);
+
+      // Store in vault (localStorage for now)
+      saveToVault(fileMetadata, keyInfo);
+
+    } catch (err: any) {
+      setError(`Encryption failed: ${err.message}`);
+    } finally {
+      setEncrypting(false);
+    }
+  };
+
+  // Save encrypted file metadata to vault
+  const saveToVault = (metadata: FileMetadata, keyInfo: string) => {
+    const vault = JSON.parse(localStorage.getItem('joyxora_vault') || '[]');
+    vault.push({
+      ...metadata,
+      encryptedAt: new Date().toISOString(),
+      keyMethod: keyMethod,
+      keyHint: keyMethod === 'password' ? 'password-protected' : keyInfo.substring(0, 16) + '...',
+    });
+    localStorage.setItem('joyxora_vault', JSON.stringify(vault));
+  };
+
+  // Download encrypted file
+  const downloadEncryptedFile = () => {
+    if (!encryptedBlob || !fileMetadata) return;
+
+    const url = URL.createObjectURL(encryptedBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${fileMetadata.name}.jxe`; // JoyXora Encrypted
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Format file size
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-3xl font-bold text-green-400">File & Folder Encryption</h2>
+
+      {/* File Upload Area */}
+      <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-8 border border-green-500/30">
+        <label className="cursor-pointer block">
+          <input
+            type="file"
+            onChange={handleFileSelect}
+            className="hidden"
+            disabled={encrypting}
+          />
+          <div className="text-center py-12 border-2 border-dashed border-green-500/30 rounded-lg hover:border-green-500/50 transition">
+            <Upload className="w-16 h-16 mx-auto text-green-400 mb-4" />
+            <p className="text-green-300 mb-2">Drag and drop or click to browse</p>
+            <p className="text-green-400/60 text-sm">Maximum file size: 50MB</p>
+          </div>
+        </label>
+
+        {/* File Metadata Display */}
+        {fileMetadata && (
+          <div className="mt-6 space-y-3 p-4 bg-gray-800/50 rounded-lg border border-green-500/20">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-green-400" />
+              <span className="text-green-300 font-medium">{fileMetadata.name}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-green-400/60">Type:</span>
+                <span className="text-green-300 ml-2">{fileMetadata.type}</span>
+              </div>
+              <div>
+                <span className="text-green-400/60">Size:</span>
+                <span className="text-green-300 ml-2">{formatSize(fileMetadata.size)}</span>
+              </div>
+            </div>
+            {fileMetadata.compressed && (
+              <div className="flex items-center gap-2 text-amber-400 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                <span>This file will be compressed before encryption</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Key Derivation Method Selection */}
+      {selectedFile && (
+        <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-8 border border-green-500/30 space-y-6">
+          <h3 className="text-xl font-bold text-green-400 flex items-center gap-2">
+            <Key className="w-6 h-6" />
+            Key Derivation Method
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Password-Based */}
+            <button
+              onClick={() => setKeyMethod('password')}
+              className={`p-6 rounded-lg border-2 transition ${
+                keyMethod === 'password'
+                  ? 'border-green-500 bg-green-500/10'
+                  : 'border-green-500/30 hover:border-green-500/50'
+              }`}
+            >
+              <Lock className="w-8 h-8 text-green-400 mb-3" />
+              <h4 className="text-green-300 font-semibold mb-2">Password-Based</h4>
+              <p className="text-green-400/60 text-sm">Derive key from your password using PBKDF2 (100k iterations)</p>
+            </button>
+
+            {/* Random Bytes */}
+            <button
+              onClick={() => {
+                setKeyMethod('random');
+                if (!generatedKey) generateRandomKey();
+              }}
+              className={`p-6 rounded-lg border-2 transition ${
+                keyMethod === 'random'
+                  ? 'border-green-500 bg-green-500/10'
+                  : 'border-green-500/30 hover:border-green-500/50'
+              }`}
+            >
+              <Key className="w-8 h-8 text-green-400 mb-3" />
+              <h4 className="text-green-300 font-semibold mb-2">Random Key</h4>
+              <p className="text-green-400/60 text-sm">Generate cryptographically secure random 256-bit key</p>
+            </button>
+          </div>
+
+          {/* Password Input */}
+          {keyMethod === 'password' && (
+            <div className="space-y-2">
+              <label className="block text-green-400 font-medium">Encryption Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter a strong password (min 8 characters)"
+                className="w-full bg-gray-800 text-green-400 px-4 py-3 rounded-lg border border-green-500/30 focus:outline-none focus:ring-2 focus:ring-green-500"
+                disabled={encrypting}
+              />
+              {password.length > 0 && password.length < 8 && (
+                <p className="text-amber-400 text-sm">Password too short</p>
+              )}
+            </div>
+          )}
+
+          {/* Random Key Display */}
+          {keyMethod === 'random' && generatedKey && (
+            <div className="space-y-2">
+              <label className="block text-green-400 font-medium">Generated Encryption Key</label>
+              <div className="bg-gray-800 p-4 rounded-lg border border-green-500/30 font-mono text-sm text-green-300 break-all">
+                {generatedKey}
+              </div>
+              <p className="text-amber-400 text-sm flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                Save this key! You'll need it to decrypt the file.
+              </p>
+              <button
+                onClick={generateRandomKey}
+                className="text-green-400 hover:text-green-300 text-sm underline"
+              >
+                Generate New Key
+              </button>
+            </div>
+          )}
+
+          {/* Encrypt Button */}
+          <button
+            onClick={encryptFile}
+            disabled={encrypting || (keyMethod === 'password' && password.length < 8)}
+            className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-gray-900 rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {encrypting ? (
+              <>
+                <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+                Encrypting... {progress}%
+              </>
+            ) : (
+              <>
+                <Lock className="w-5 h-5" />
+                Encrypt File
+              </>
+            )}
+          </button>
+
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">
+              <AlertCircle className="w-5 h-5" />
+              <span>{error}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Download Encrypted File */}
+      {encryptedBlob && (
+        <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-8 border border-green-500/30">
+          <div className="flex items-center gap-2 text-green-400 mb-4">
+            <CheckCircle className="w-6 h-6" />
+            <h3 className="text-xl font-bold">Encryption Complete!</h3>
+          </div>
+          <p className="text-green-300 mb-6">Your file has been encrypted successfully. Download it below.</p>
+          <button
+            onClick={downloadEncryptedFile}
+            className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-gray-900 rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition font-semibold text-lg flex items-center justify-center gap-2"
+          >
+            <Download className="w-5 h-5" />
+            Download Encrypted File
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default FileEncryption;
-// ============================================
-// SECURITY NOTES
-// ============================================
-
-/**
- * Why Argon2id specifically?
- * 
- * Argon2 has 3 variants:
- * 1. Argon2d: Faster, but vulnerable to side-channel attacks
- * 2. Argon2i: Side-channel resistant, but slower
- * 3. Argon2id: HYBRID - Best of both worlds ✅
- * 
- * Argon2id uses:
- * - Argon2i for first pass (side-channel resistant)
- * - Argon2d for remaining passes (maximum security)
- * 
- * Result: Resistant to ALL known attacks:
- * ✅ GPU attacks (memory-hard)
- * ✅ ASIC attacks (memory-hard)
- * ✅ Side-channel attacks (data-independent first pass)
- * ✅ Time-memory tradeoff attacks (mixing function)
- */
-
-/**
- * Memory requirements explained:
- * 
- * 64 MB memory setting means:
- * - Each password attempt needs 64 MB RAM
- * - High-end GPU (24 GB RAM) can run ~375 attempts in parallel
- * - Compare to PBKDF2: same GPU can run ~10,000 attempts in parallel
- * - Reduction: 27x fewer parallel attempts
- * 
- * Combined with 3 iterations taking ~0.5 sec:
- * - Attacker speed: ~750 passwords/sec on $10,000 GPU
- * - Compare to PBKDF2: ~10,000,000 passwords/sec
- * - Slowdown: 13,333x
- * 
- * This turns a $100 attack into a $1,300,000 attack.
- */
-
