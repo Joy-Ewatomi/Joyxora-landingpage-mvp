@@ -281,65 +281,7 @@ async function decryptFile(
   }
 }
 
-async function decryptFilePBKDF2(encryptedData: any, password: string): Promise<ArrayBuffer> {
-  // Your existing PBKDF2 decryption code here
-  const salt = new Uint8Array(encryptedData.salt);
-  const iv = new Uint8Array(encryptedData.iv);
-  
-  const key = await deriveKeyFromPasswordPBKDF2(password, salt);
-  
-  const ciphertext = new Uint8Array(encryptedData.data);
-  
-  const decrypted = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: iv },
-    key,
-    ciphertext
-  );
-  
-  return decrypted;
-}
-
-// ============================================
-// USAGE EXAMPLE
-// ============================================
-
-async function example() {
-  // File to encrypt
-  const file = new File(['Hello, JoyXora!'], 'test.txt', { type: 'text/plain' });
-  const buffer = await file.arrayBuffer();
-  
-  // Encrypt with Argon2
-  const encrypted = await encryptFileArgon2(
-    buffer,
-    'MySecurePassword123!',
-    {
-      name: 'test.txt',
-      type: 'text/plain',
-      size: buffer.byteLength,
-      compressed: false,
-    }
-  );
-  
-  console.log('Encrypted:', encrypted);
-  
-  // Decrypt
-  const decrypted = await decryptFileArgon2(encrypted, 'MySecurePassword123!');
-  const text = new TextDecoder().decode(decrypted);
-  
-  console.log('Decrypted:', text); // "Hello, JoyXora!"
-}
-
-// ============================================
-// EXPORTS
-// ============================================
-
-export {
-  deriveKeyFromPasswordArgon2,
-  encryptFileArgon2,
-  decryptFileArgon2,
-  decryptFile, // Smart function that handles both formats
-};
-
+export default FileEncryption;
 // ============================================
 // SECURITY NOTES
 // ============================================
@@ -379,3 +321,4 @@ export {
  * 
  * This turns a $100 attack into a $1,300,000 attack.
  */
+
