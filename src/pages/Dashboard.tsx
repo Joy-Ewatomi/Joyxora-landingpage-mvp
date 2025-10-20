@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Lock, MessageSquare, Bot, Terminal, Shield, User, Archive, Settings } from 'lucide-react';
+import {  Lock, MessageSquare, Bot, Terminal, Shield, Archive, Settings } from 'lucide-react';
 import FileEncryption from "../components/FileEncryption.tsx";
 
 type FeatureType = 'files' | 'apps' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
