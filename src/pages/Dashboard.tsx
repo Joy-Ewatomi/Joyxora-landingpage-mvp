@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Lock, MessageSquare, Bot, Terminal, Shield, User, Menu, X } from 'lucide-react';
+import { FileText, Lock, MessageSquare, Bot, Terminal, Shield, User, Archive, Settings } from 'lucide-react';
 import FileEncryption from "../components/FileEncryption.tsx";
 
 type FeatureType = 'files' | 'apps' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
@@ -9,7 +9,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [activeFeature, setActiveFeature] = useState<FeatureType>('files');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     // Check if user is logged in
@@ -17,7 +17,6 @@ const Dashboard: React.FC = () => {
     const userData = localStorage.getItem('joyxora_user');
 
     if (!token) {
-      // Not logged in, redirect to home
       navigate('/');
       return;
     }
@@ -27,6 +26,11 @@ const Dashboard: React.FC = () => {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem('joyxora_token');
     localStorage.removeItem('joyxora_user');
@@ -34,13 +38,13 @@ const Dashboard: React.FC = () => {
   };
 
   const menuItems = [
-    { id: 'files', label: 'Files/Folders', icon: FileText },
-    { id: 'apps', label: 'App Encryption', icon: Lock },
-    { id: 'messages', label: 'Messages', icon: MessageSquare },
-    { id: 'chatbot', label: 'Chatbot', icon: Bot },
-    { id: 'terminal', label: 'Terminal', icon: Terminal },
-    { id: 'vault', label: 'Vault', icon: Shield },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'files', label: 'FILE ENCRYPT', sublabel: 'Secure your files', icon: Lock },
+    { id: 'apps', label: 'FILE DECRYPT', sublabel: 'Unlock your data', icon: Lock },
+    { id: 'messages', label: 'SECURE CHAT', sublabel: 'Anonymous messaging', icon: MessageSquare },
+    { id: 'chatbot', label: 'AI ASSISTANT', sublabel: 'Security advisor', icon: Bot },
+    { id: 'vault', label: 'APP VAULT', sublabel: 'Hide applications', icon: Archive },
+    { id: 'terminal', label: 'TERMINAL', sublabel: 'Command interface', icon: Terminal },
+    { id: 'profile', label: 'CONFIG', sublabel: 'System settings', icon: Settings },
   ];
 
   const renderContent = () => {
@@ -66,76 +70,124 @@ const Dashboard: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-green-400 text-xl">Loading...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-green-400 text-xl font-mono">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-r from-gray-900 to-gray-800">
+    <div className="min-h-screen bg-black text-green-400 font-mono">
       {/* Header */}
-      <header className="bg-gray-900/90 backdrop-blur-lg border-b border-green-500/30 text-white p-4 flex items-center justify-between shadow-lg">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition"
-          >
-            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">🐱</span>
-            <h1 className="text-2xl font-bold text-green-400">Joyxora</h1>
+      <div className="flex items-center justify-between border-b border-green-900 p-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-green-500 p-2 rounded">
+            <Shield className="w-6 h-6 text-black" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-green-400">CYBERVAULT</h1>
+            <p className="text-xs text-green-600">SECURE ENCRYPTION SYSTEM v2.1</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="hidden sm:inline text-sm text-green-400">
-            Welcome, {user.email?.split('@')[0] || user.username}!
-          </span>
-          <button 
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition border border-red-500/30"
-          >
-            Logout
-          </button>
+        
+        <div className="flex items-center gap-6 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span>SYSTEM ACTIVE</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span>CPU: 35%</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span>RAM: 67%</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+            <span>SECURE CONNECTION</span>
+          </div>
         </div>
-      </header>
+      </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex p-4 gap-4">
         {/* Sidebar */}
-        <aside
-          className={`${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } lg:translate-x-0 fixed lg:relative z-20 w-64 bg-gray-900 border-r border-green-500/30 h-full transition-transform duration-300 shadow-xl lg:shadow-none`}
-        >
-          <nav className="p-4 space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeFeature === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveFeature(item.id as FeatureType);
-                    if (window.innerWidth < 1024) setSidebarOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-gray-900 shadow-lg shadow-green-500/50'
-                      : 'text-green-400 hover:bg-gray-800 border border-transparent hover:border-green-500/30'
-                  }`}
-                >
-                  <Icon size={20} />
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+        <aside className="w-64 space-y-2 flex-shrink-0">
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = (index === 0 && activeFeature === 'files');
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveFeature(item.id as FeatureType)}
+                className={`w-full px-4 py-3 rounded flex items-center gap-3 transition-colors text-left ${
+                  isActive
+                    ? 'bg-green-500 text-black'
+                    : 'bg-gray-900 border border-green-900 text-green-400 hover:bg-gray-800'
+                }`}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-sm">{item.label}</div>
+                  <div className="text-xs opacity-75 truncate">{item.sublabel}</div>
+                </div>
+              </button>
+            );
+          })}
+
+          {/* Status Panel */}
+          <div className="mt-6 bg-gray-900 border border-green-900 rounded p-3">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs">STATUS:</span>
+              <span className="text-xs text-green-400">ONLINE</span>
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs">ENCRYPTION:</span>
+              <span className="text-xs text-green-400">AES-256</span>
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs">SECURITY:</span>
+              <span className="text-xs text-red-400">MAX</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs">STEALTH:</span>
+              <span className="text-xs text-green-400">ON</span>
+            </div>
+          </div>
         </aside>
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-auto p-6 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-          {renderContent()}
+        {/* Main Content */}
+        <main className="flex-1 min-w-0">
+          <div className="h-full">
+            {renderContent()}
+          </div>
+
+          {/* Footer */}
+          <div className="mt-4 flex justify-between text-xs text-green-700">
+            <div className="flex gap-4">
+              <span className="text-red-400">⚠ STEALTH MODE</span>
+              <span className="text-green-400">✓ VPN TUNNELING: OFF</span>
+              <span className="text-green-400">✓ USER SHADOW</span>
+            </div>
+            <div className="flex gap-4 items-center">
+              <button 
+                onClick={handleLogout}
+                className="text-red-400 hover:text-red-300 transition-colors"
+              >
+                🔓 LOGOUT
+              </button>
+              <span>
+                {currentTime.toLocaleTimeString('en-US', { 
+                  hour: '2-digit', 
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: true 
+                })} | {currentTime.toLocaleDateString('en-US', {
+                  month: '2-digit',
+                  day: '2-digit', 
+                  year: 'numeric'
+                })}
+              </span>
+            </div>
+          </div>
         </main>
       </div>
     </div>
@@ -144,80 +196,110 @@ const Dashboard: React.FC = () => {
 
 // Feature Components
 const AppEncryption = () => (
-  <div className="space-y-6">
-    <h2 className="text-3xl font-bold text-green-400">App Encryption</h2>
-    <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-8 border border-green-500/30">
-      <p className="text-green-300 mb-6">Lock and protect your installed applications</p>
-      <div className="text-center py-8">
-        <Lock className="w-16 h-16 mx-auto text-green-400 mb-4" />
-        <p className="text-green-300">App encryption coming soon</p>
-      </div>
+  <div className="border-2 border-green-900 rounded-lg p-6 bg-black">
+    <div className="flex items-center gap-3 mb-4">
+      <Lock className="w-6 h-6 text-green-400" />
+      <h2 className="text-xl font-bold">FILE DECRYPTION MATRIX</h2>
+    </div>
+    <p className="text-xs text-green-600 mb-6">
+      &gt; SELECT ENCRYPTED FILES TO DECRYPT
+    </p>
+    <div className="text-center py-16 border-2 border-dashed border-green-900 rounded-lg">
+      <Lock className="w-16 h-16 mx-auto text-green-400 mb-4" />
+      <p className="text-lg font-bold mb-2">NO ENCRYPTED FILES SELECTED</p>
+      <p className="text-xs text-green-600">Upload encrypted files to decrypt them</p>
     </div>
   </div>
 );
 
 const Messaging = () => (
-  <div className="space-y-6">
-    <h2 className="text-3xl font-bold text-green-400">Secure Messaging</h2>
-    <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-8 border border-green-500/30">
-      <p className="text-green-300 mb-4">End-to-end encrypted conversations</p>
-      <div className="text-center py-8">
-        <MessageSquare className="w-16 h-16 mx-auto text-green-400 mb-4" />
-        <p className="text-green-300 mb-4">Create an invite link to start messaging</p>
-        <button className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-gray-900 rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition font-semibold">
-          Generate Invite Link
+  <div className="border-2 border-green-900 rounded-lg p-6 bg-black">
+    <div className="flex items-center gap-3 mb-4">
+      <MessageSquare className="w-6 h-6 text-green-400" />
+      <h2 className="text-xl font-bold">SECURE MESSAGING PROTOCOL</h2>
+    </div>
+    <p className="text-xs text-green-600 mb-6">
+      &gt; END-TO-END ENCRYPTED COMMUNICATIONS
+    </p>
+    <div className="space-y-4">
+      <div className="bg-gray-900 border border-green-900 rounded-lg p-4">
+        <p className="text-sm text-green-300 mb-4">Generate anonymous invite link for secure communication</p>
+        <button className="w-full px-6 py-3 bg-green-500 text-black rounded hover:bg-green-400 transition-colors font-bold">
+          GENERATE INVITE LINK
         </button>
+      </div>
+      <div className="border-2 border-dashed border-green-900 rounded-lg p-12 text-center">
+        <MessageSquare className="w-16 h-16 mx-auto text-green-400 mb-4" />
+        <p className="text-green-300">No active conversations</p>
+        <p className="text-xs text-green-600 mt-2">Share invite link to start messaging</p>
       </div>
     </div>
   </div>
 );
 
 const ChatbotView = () => (
-  <div className="space-y-6">
-    <h2 className="text-3xl font-bold text-green-400">AI Assistant</h2>
-    <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-6 border border-green-500/30 h-[600px]">
-      <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-auto mb-4 space-y-4 p-4">
-          <div className="bg-gray-800 border border-green-500/30 rounded-lg p-4 max-w-md">
-            <p className="text-sm text-green-300">Hi! 👋 I'm your Joyxora assistant. How can I help you today?</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Ask me anything..."
-            className="flex-1 px-4 py-3 bg-gray-800 text-green-400 border border-green-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          <button className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-gray-900 rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition font-semibold">
-            Send
-          </button>
+  <div className="border-2 border-green-900 rounded-lg p-6 bg-black h-full flex flex-col">
+    <div className="flex items-center gap-3 mb-4">
+      <Bot className="w-6 h-6 text-green-400" />
+      <h2 className="text-xl font-bold">AI SECURITY ASSISTANT</h2>
+    </div>
+    <p className="text-xs text-green-600 mb-6">
+      &gt; INTELLIGENT THREAT ANALYSIS & RECOMMENDATIONS
+    </p>
+    
+    <div className="flex-1 bg-gray-900 border border-green-900 rounded-lg p-4 mb-4 overflow-auto">
+      <div className="space-y-4">
+        <div className="bg-gray-800 border border-green-500/30 rounded-lg p-4 max-w-md">
+          <p className="text-sm text-green-300">
+            <span className="text-green-400 font-bold">[ASSISTANT]:</span> Security protocols initialized. How can I assist you with encryption today?
+          </p>
         </div>
       </div>
+    </div>
+    
+    <div className="flex gap-2">
+      <input
+        type="text"
+        placeholder="Enter command or query..."
+        className="flex-1 px-4 py-3 bg-gray-900 text-green-400 border border-green-900 rounded focus:outline-none focus:border-green-500 placeholder-green-800"
+      />
+      <button className="px-6 py-3 bg-green-500 text-black rounded hover:bg-green-400 transition-colors font-bold">
+        SEND
+      </button>
     </div>
   </div>
 );
 
 const TerminalView = () => (
-  <div className="space-y-6">
-    <h2 className="text-3xl font-bold text-green-400">Terminal</h2>
-    <div className="bg-black rounded-xl shadow-lg p-6 border border-green-500/50 font-mono text-sm h-[600px] overflow-auto">
+  <div className="border-2 border-green-900 rounded-lg p-6 bg-black">
+    <div className="flex items-center gap-3 mb-4">
+      <Terminal className="w-6 h-6 text-green-400" />
+      <h2 className="text-xl font-bold">COMMAND INTERFACE</h2>
+    </div>
+    <p className="text-xs text-green-600 mb-6">
+      &gt; DIRECT SYSTEM ACCESS • TYPE 'HELP' FOR COMMANDS
+    </p>
+    
+    <div className="bg-black border-2 border-green-500 rounded-lg p-6 font-mono text-sm h-[500px] overflow-auto">
       <div className="text-green-400">
-        <p className="mb-2">Joyxora Terminal v1.0</p>
-        <p className="mb-4 text-green-300">Type 'help' for available commands</p>
+        <p className="mb-2">CyberVault Terminal v2.1</p>
+        <p className="mb-4 text-green-300">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
         <div className="space-y-2">
           <div>
-            <span className="text-green-500">$</span>
+            <span className="text-green-500">root@cybervault:~$</span>
             <span className="text-white ml-2">help</span>
           </div>
-          <div className="ml-4 text-green-300">
+          <div className="ml-4 text-green-300 space-y-1">
             <p>Available commands:</p>
-            <p className="ml-4">encrypt [file] - Encrypt a file</p>
-            <p className="ml-4">decrypt [file] - Decrypt a file</p>
-            <p className="ml-4">list - Show encrypted files</p>
-            <p className="ml-4">clear - Clear terminal</p>
+            <p className="ml-4">• encrypt [file] - Encrypt specified file</p>
+            <p className="ml-4">• decrypt [file] - Decrypt specified file</p>
+            <p className="ml-4">• list - Display encrypted vault contents</p>
+            <p className="ml-4">• scan - Run security scan</p>
+            <p className="ml-4">• status - Show system status</p>
+            <p className="ml-4">• clear - Clear terminal screen</p>
           </div>
           <div className="mt-4">
-            <span className="text-green-500">$</span>
+            <span className="text-green-500">root@cybervault:~$</span>
             <span className="text-white ml-2 animate-pulse">_</span>
           </div>
         </div>
@@ -227,66 +309,83 @@ const TerminalView = () => (
 );
 
 const Vault = () => (
-  <div className="space-y-6">
-    <h2 className="text-3xl font-bold text-green-400">Encrypted Vault</h2>
-    <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-8 border border-green-500/30">
-      <div className="text-center py-12">
-        <Shield className="w-16 h-16 mx-auto text-green-400 mb-4" />
-        <p className="text-green-300">Your encrypted files will appear here</p>
-        <p className="text-green-400/60 text-sm mt-2">No files encrypted yet</p>
-      </div>
+  <div className="border-2 border-green-900 rounded-lg p-6 bg-black">
+    <div className="flex items-center gap-3 mb-4">
+      <Archive className="w-6 h-6 text-green-400" />
+      <h2 className="text-xl font-bold">APPLICATION VAULT</h2>
+    </div>
+    <p className="text-xs text-green-600 mb-6">
+      &gt; PROTECTED APPLICATION STORAGE
+    </p>
+    <div className="border-2 border-dashed border-green-900 rounded-lg p-16 text-center">
+      <Shield className="w-16 h-16 mx-auto text-green-400 mb-4" />
+      <p className="text-lg font-bold mb-2">VAULT IS EMPTY</p>
+      <p className="text-xs text-green-600">No applications are currently protected</p>
+      <button className="mt-6 px-6 py-3 bg-green-500 text-black rounded hover:bg-green-400 transition-colors font-bold">
+        ADD APPLICATIONS
+      </button>
     </div>
   </div>
 );
 
 const ProfileView = ({ user, onLogout }: { user: any; onLogout: () => void }) => (
-  <div className="space-y-6">
-    <h2 className="text-3xl font-bold text-green-400">User Profile</h2>
-    <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-8 border border-green-500/30">
-      <div className="space-y-6">
-        <div className="flex items-center gap-4 pb-6 border-b border-green-500/30">
-          <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-3xl">
-            {user.email?.[0]?.toUpperCase() || '🐱'}
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-green-400">{user.username || 'User'}</h3>
-            <p className="text-green-300">{user.email}</p>
-          </div>
+  <div className="border-2 border-green-900 rounded-lg p-6 bg-black">
+    <div className="flex items-center gap-3 mb-4">
+      <Settings className="w-6 h-6 text-green-400" />
+      <h2 className="text-xl font-bold">SYSTEM CONFIGURATION</h2>
+    </div>
+    <p className="text-xs text-green-600 mb-6">
+      &gt; USER PROFILE & SYSTEM SETTINGS
+    </p>
+    
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 pb-6 border-b border-green-900">
+        <div className="w-20 h-20 bg-green-500 rounded flex items-center justify-center text-3xl text-black font-bold">
+          {user.email?.[0]?.toUpperCase() || 'U'}
         </div>
         <div>
-          <label className="block text-sm font-medium text-green-400 mb-2">Username</label>
-          <input 
-            type="text" 
-            className="w-full px-4 py-2 bg-gray-800 text-green-400 border border-green-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" 
-            value={user.username || ''} 
-            readOnly 
-          />
+          <h3 className="text-xl font-bold text-green-400">{user.username || 'User'}</h3>
+          <p className="text-green-600 text-sm">{user.email}</p>
+          <p className="text-green-700 text-xs mt-1">ID: JX-{user.id || '12345'}</p>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-green-400 mb-2">Email</label>
-          <input 
-            type="email" 
-            className="w-full px-4 py-2 bg-gray-800 text-green-400 border border-green-500/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" 
-            value={user.email || ''} 
-            readOnly 
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-green-400 mb-2">Joyxora ID</label>
-          <input 
-            type="text" 
-            className="w-full px-4 py-2 bg-gray-800 text-green-400 border border-green-500/30 rounded-lg" 
-            value={`JX-${user.id || '12345'}`} 
-            readOnly 
-          />
-        </div>
-        <button 
-          onClick={onLogout}
-          className="w-full px-6 py-3 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition border border-red-500/30 font-semibold"
-        >
-          Logout
-        </button>
       </div>
+      
+      <div>
+        <label className="block text-xs font-bold text-green-400 mb-2">USERNAME</label>
+        <input
+          type="text"
+          className="w-full px-4 py-2 bg-gray-900 text-green-400 border border-green-900 rounded focus:outline-none focus:border-green-500"
+          value={user.username || ''}
+          readOnly
+        />
+      </div>
+      
+      <div>
+        <label className="block text-xs font-bold text-green-400 mb-2">EMAIL ADDRESS</label>
+        <input
+          type="email"
+          className="w-full px-4 py-2 bg-gray-900 text-green-400 border border-green-900 rounded focus:outline-none focus:border-green-500"
+          value={user.email || ''}
+          readOnly
+        />
+      </div>
+      
+      <div>
+        <label className="block text-xs font-bold text-green-400 mb-2">SECURITY LEVEL</label>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-gray-900 rounded-full h-2">
+            <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+          </div>
+          <span className="text-xs text-red-400">MAXIMUM</span>
+        </div>
+      </div>
+      
+      <button
+        onClick={onLogout}
+        className="w-full px-6 py-3 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition border border-red-500/30 font-bold"
+      >
+        TERMINATE SESSION
+      </button>
     </div>
   </div>
 );
