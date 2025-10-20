@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {  Lock, MessageSquare, Bot, Terminal, Shield, Archive, Settings } from 'lucide-react';
+import { Lock, MessageSquare, Bot, Terminal, Shield, Archive, Settings } from 'lucide-react';
 import FileEncryption from "../components/FileEncryption.tsx";
 
 type FeatureType = 'files' | 'apps' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
@@ -10,7 +10,6 @@ const Dashboard: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [activeFeature, setActiveFeature] = useState<FeatureType>('files');
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     // Check if user is logged in
@@ -36,10 +35,6 @@ const Dashboard: React.FC = () => {
     localStorage.removeItem('joyxora_token');
     localStorage.removeItem('joyxora_user');
     navigate('/');
-  };
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen((prev) => !prev);
   };
 
   const menuItems = [
@@ -95,10 +90,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         
-        <button onClick={toggleSidebar} className="md:hidden p-2 bg-green-500 text-black rounded">
-          {isSidebarOpen ? 'Close Menu' : 'Open Menu'}
-        </button>
-        
         <div className="flex items-center gap-6 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -119,8 +110,8 @@ const Dashboard: React.FC = () => {
 
       <div className="flex p-4 gap-4">
         {/* Sidebar */}
-        <aside className={`w-64 space-y-2 flex-shrink-0 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
-          {isSidebarOpen && menuItems.map((item, index) => {
+        <aside className="w-64 space-y-2 flex-shrink-0">
+          {menuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = (index === 0 && activeFeature === 'files');
             return (
@@ -141,10 +132,30 @@ const Dashboard: React.FC = () => {
               </button>
             );
           })}
+
+          {/* Status Panel */}
+          <div className="mt-6 bg-gray-900 border border-green-900 rounded p-3">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs">STATUS:</span>
+              <span className="text-xs text-green-400">ONLINE</span>
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs">ENCRYPTION:</span>
+              <span className="text-xs text-green-400">AES-256</span>
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs">SECURITY:</span>
+              <span className="text-xs text-red-400">MAX</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs">STEALTH:</span>
+              <span className="text-xs text-green-400">ON</span>
+            </div>
+          </div>
         </aside>
 
         {/* Main Content */}
-        <main className={`flex-1 min-w-0 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'} md:ml-64`}>
+        <main className="flex-1 min-w-0">
           <div className="h-full">
             {renderContent()}
           </div>
