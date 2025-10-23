@@ -141,15 +141,15 @@ const Dashboard: React.FC = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-joyxora-dark flex items-center justify-center">
-        <div className="text-joyxora-green-400 text-xl font-mono">Loading...</div>
+        <div className="text-joyxora-green text-xl font-mono">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-joyxora-dark text-joyxora-green-400 font-mono">
+    <div className="min-h-screen bg-joyxora-dark text-joyxora-green font-mono">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-joyxora-green-900 p-4">
+      <div className="flex items-center justify-between border-b border-joyxora-green p-4">
         <div className="flex items-center gap-3">
           <button
             className="lg:hidden p-2 rounded hover:bg-joyxora-dark"
@@ -172,17 +172,17 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center gap-6 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-joyxora-green rounded-full animate-pulse"></div>
-            <span>SYSTEM ACTIVE</span>
+            <span className="text-joyxora-green">SYSTEM ACTIVE</span>
           </div>
           <div className="flex items-center gap-2">
-            <span>CPU: 35%</span>
+            <span className="text-joyxora-green">CPU: 35%</span>
           </div>
           <div className="flex items-center gap-2">
-            <span>RAM: 67%</span>
+            <span className="text-joyxora-green">RAM: 67%</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-joyxora-green rounded-full"></div>
-            <span>SECURE CONNECTION</span>
+            <span className="text-joyxora-green">SECURE CONNECTION</span>
           </div>
         </div>
       </div>
@@ -401,7 +401,7 @@ const Dashboard: React.FC = () => {
           <div className="h-full">{renderContent()}</div>
 
           {/* Footer */}
-          <div className="fixed bottom-0 lg:mt-4 flex justify-between text-xs text-joyxora-green">
+          <div className="fixed bottom-0 lg:mt-4 flex justify-center items-center text-xs text-joyxora-green">
             <div className="flex gap-4">
               <span className="text-joyxora-green">⚠ STEALTH MODE</span>
               <span className="text-joyxora-green">✓ VPN TUNNELING: OFF</span>
