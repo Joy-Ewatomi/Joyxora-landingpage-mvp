@@ -15,7 +15,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import FileEncryption from "../components/FileEncryption.tsx"; 
+import FileEncryption from "../components/FileEncryption.tsx";
 
 type FeatureType = 'files' | 'apps' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
 
@@ -298,7 +298,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="bg-joyxora-green p-2 rounded">
-                      <Shield className="w-5 h-5 text-joydora-dark" />
+                      <Shield className="w-5 h-5 text-joyxora-dark" />
                     </div>
                     <div>
                       <div className="text-sm font-bold">JOYXORA</div>
@@ -403,7 +403,7 @@ const Dashboard: React.FC = () => {
           {/* Footer */}
           <div className="fixed bottom-0 lg:mt-4 flex justify-between text-xs text-joyxora-green">
             <div className="flex gap-4">
-              <span className="text-joyxora-green>⚠ STEALTH MODE</span>
+              <span className="text-joyxora-green">⚠ STEALTH MODE</span>
               <span className="text-joyxora-green">✓ VPN TUNNELING: OFF</span>
               <span className="text-joyxora-green">✓ USER SHADOW</span>
             </div>
@@ -412,7 +412,7 @@ const Dashboard: React.FC = () => {
                 onClick={handleLogout}
                 className="text-red-400 hover:text-red-300 transition-colors"
               >
-                🔓 LOGOUT
+                🔒 LOGOUT
               </button>
               <span>
                 {currentTime.toLocaleTimeString('en-US', {
@@ -630,3 +630,4 @@ const ProfileView = ({ user, onLogout }: { user: any; onLogout: () => void }) =>
 );
 
 export default Dashboard;
+
