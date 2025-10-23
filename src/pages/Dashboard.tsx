@@ -15,7 +15,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import FileEncryption from "../components/FileEncryption.tsx"; // keep your existing import
+import FileEncryption from "../components/FileEncryption.tsx"; 
 
 type FeatureType = 'files' | 'apps' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
 
@@ -140,38 +140,38 @@ const Dashboard: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-green-400 text-xl font-mono">Loading...</div>
+      <div className="min-h-screen bg-joyxora-dark flex items-center justify-center">
+        <div className="text-joyxora-green-400 text-xl font-mono">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono">
+    <div className="min-h-screen bg-joyxora-dark text-joyxora-green-400 font-mono">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-green-900 p-4">
+      <div className="flex items-center justify-between border-b border-joyxora-green-900 p-4">
         <div className="flex items-center gap-3">
           <button
             className="lg:hidden p-2 rounded hover:bg-gray-900"
             onClick={() => setDrawerOpen(true)}
             aria-label="Open menu"
           >
-            <MenuIcon className="w-6 h-6 text-green-400" />
+            <MenuIcon className="w-6 h-6 text-joyxora-green" />
           </button>
 
-          <div className="bg-green-500 p-2 rounded hidden lg:flex items-center">
-            <Shield className="w-6 h-6 text-black" />
+          <div className="bg-joyxora-green p-2 rounded hidden lg:flex items-center">
+            <Shield className="w-6 h-6 text-joyxora-dark" />
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-green-400">CYBERVAULT</h1>
+            <h1 className="text-2xl font-bold text-joyxora-green">JOYXORA</h1>
             <p className="text-xs text-green-600">SECURE ENCRYPTION SYSTEM v2.1</p>
           </div>
         </div>
 
         <div className="flex items-center gap-6 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-joyxora-green rounded-full animate-pulse"></div>
             <span>SYSTEM ACTIVE</span>
           </div>
           <div className="flex items-center gap-2">
@@ -181,7 +181,7 @@ const Dashboard: React.FC = () => {
             <span>RAM: 67%</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+            <div className="w-2 h-2 bg-joyxora-green rounded-full"></div>
             <span>SECURE CONNECTION</span>
           </div>
         </div>
@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden px-3 mt-2"
                     >
-                      <div className="bg-gray-900 border border-green-900 rounded p-2 space-y-2">
+                      <div className="bg-joyxora-dark border border-joyxora-green rounded p-2 space-y-2">
                         {item.actions?.map((a) => (
                           <button
                             key={a.id}
@@ -240,7 +240,7 @@ const Dashboard: React.FC = () => {
                               // default action: set active and optionally perform something
                               setActiveFeature(item.id);
                             }}
-                            className="w-full text-left px-3 py-2 rounded text-sm text-green-300 hover:bg-gray-800"
+                            className="w-full text-left px-3 py-2 rounded text-sm text-joyxora-green-300 hover:bg-joyxora-darker-800"
                           >
                             {a.label}
                           </button>
@@ -254,14 +254,14 @@ const Dashboard: React.FC = () => {
           })}
 
           {/* Status Panel */}
-          <div className="mt-6 bg-gray-900 border border-green-900 rounded p-3">
+          <div className="mt-6 bg-joyxora-dark border border-joyxora-green-900 rounded p-3">
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs">STATUS:</span>
-              <span className="text-xs text-green-400">ONLINE</span>
+              <span className="text-xs text-joyxora-green">ONLINE</span>
             </div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs">ENCRYPTION:</span>
-              <span className="text-xs text-green-400">AES-256</span>
+              <span className="text-xs text-joyxora-green">AES-256</span>
             </div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs">SECURITY:</span>
@@ -269,7 +269,7 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs">STEALTH:</span>
-              <span className="text-xs text-green-400">ON</span>
+              <span className="text-xs text-joyxora-green">ON</span>
             </div>
           </div>
         </aside>
@@ -289,7 +289,7 @@ const Dashboard: React.FC = () => {
 
               {/* drawer */}
               <motion.aside
-                className="fixed left-0 top-0 bottom-0 w-72 bg-black text-green-400 z-50 p-4 overflow-auto"
+                className="fixed left-0 top-0 bottom-0 w-72 bg-joyxora-dark text-joyxora-green z-50 p-4 overflow-auto"
                 initial={{ x: -320 }}
                 animate={{ x: 0 }}
                 exit={{ x: -320 }}
@@ -297,16 +297,16 @@ const Dashboard: React.FC = () => {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="bg-green-500 p-2 rounded">
-                      <Shield className="w-5 h-5 text-black" />
+                    <div className="bg-joyxora-green p-2 rounded">
+                      <Shield className="w-5 h-5 text-joydora-dark" />
                     </div>
                     <div>
                       <div className="text-sm font-bold">CYBERVAULT</div>
-                      <div className="text-xs text-green-600">v2.1</div>
+                      <div className="text-xs text-joyxora-green">v2.1</div>
                     </div>
                   </div>
-                  <button onClick={() => setDrawerOpen(false)} aria-label="Close menu" className="p-2 rounded hover:bg-gray-900">
-                    <XIcon className="w-5 h-5 text-green-400" />
+                  <button onClick={() => setDrawerOpen(false)} aria-label="Close menu" className="p-2 rounded hover:bg-joyxora-dark">
+                    <XIcon className="w-5 h-5 text-joyxora-green" />
                   </button>
                 </div>
 
@@ -326,8 +326,8 @@ const Dashboard: React.FC = () => {
                           }}
                           className={`w-full px-3 py-3 rounded flex items-center gap-3 text-left ${
                             isActive
-                              ? 'bg-green-500 text-black'
-                              : 'bg-gray-900 border border-green-900 text-green-400 hover:bg-gray-800'
+                              ? 'bg-joyxora-green text-joyxora-dark'
+                              : 'bg-joyxora-dark border border-joyxora-green text-joyxora-green hover:bg-joyxora-darker'
                           }`}
                         >
                           <Icon className="w-5 h-5 flex-shrink-0" />
@@ -349,7 +349,7 @@ const Dashboard: React.FC = () => {
                               exit={{ height: 0, opacity: 0 }}
                               className="overflow-hidden px-2 mt-2"
                             >
-                              <div className="bg-gray-900 border border-green-900 rounded p-2 space-y-2">
+                              <div className="bg-joyxora-dark border border-joyxora-green rounded p-2 space-y-2">
                                 {item.actions?.map((a) => (
                                   <button
                                     key={a.id}
@@ -359,7 +359,7 @@ const Dashboard: React.FC = () => {
                                       setDrawerOpen(false);
                                       setOpenMenu(null);
                                     }}
-                                    className="w-full text-left px-3 py-2 rounded text-sm text-green-300 hover:bg-gray-800"
+                                    className="w-full text-left px-3 py-2 rounded text-sm text-joyxora-green hover:bg-joyxora-dark"
                                   >
                                     {a.label}
                                   </button>
@@ -373,14 +373,14 @@ const Dashboard: React.FC = () => {
                   })}
                 </div>
 
-                <div className="mt-6 bg-gray-900 border border-green-900 rounded p-3">
+                <div className="mt-6 bg-joyxora-dark border border-joyxora-green rounded p-3">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-xs">STATUS:</span>
-                    <span className="text-xs text-green-400">ONLINE</span>
+                    <span className="text-xs text-joyxora-green">ONLINE</span>
                   </div>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-xs">ENCRYPTION:</span>
-                    <span className="text-xs text-green-400">AES-256</span>
+                    <span className="text-xs text-joyxora-green">AES-256</span>
                   </div>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-xs">SECURITY:</span>
@@ -388,7 +388,7 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs">STEALTH:</span>
-                    <span className="text-xs text-green-400">ON</span>
+                    <span className="text-xs text-joyxora-green">ON</span>
                   </div>
                 </div>
               </motion.aside>
