@@ -152,7 +152,7 @@ const Dashboard: React.FC = () => {
       <div className="flex items-center justify-between border-b border-joyxora-green-900 p-4">
         <div className="flex items-center gap-3">
           <button
-            className="lg:hidden p-2 rounded hover:bg-gray-900"
+            className="lg:hidden p-2 rounded hover:bg-joyxora-dark"
             onClick={() => setDrawerOpen(true)}
             aria-label="Open menu"
           >
@@ -165,7 +165,7 @@ const Dashboard: React.FC = () => {
 
           <div>
             <h1 className="text-2xl font-bold text-joyxora-green">JOYXORA</h1>
-            <p className="text-xs text-green-600">SECURE ENCRYPTION SYSTEM v2.1</p>
+            <p className="text-xs text-joyxora-green">SECURE ENCRYPTION SYSTEM v2.1</p>
           </div>
         </div>
 
@@ -203,8 +203,8 @@ const Dashboard: React.FC = () => {
                   }}
                   className={`w-full px-4 py-3 rounded flex items-center gap-3 transition-colors text-left ${
                     isActive
-                      ? 'bg-green-500 text-black'
-                      : 'bg-gray-900 border border-green-900 text-green-400 hover:bg-gray-800'
+                      ? 'bg-joyxora-green text-joyxora-dark'
+                      : 'bg-joyxora-dark border border-joyxora-green text-joyxora-green hover:bg-joyxora-darks'
                   }`}
                   aria-expanded={openMenu === item.id}
                 >
@@ -254,7 +254,7 @@ const Dashboard: React.FC = () => {
           })}
 
           {/* Status Panel */}
-          <div className="mt-6 bg-joyxora-dark border border-joyxora-green-900 rounded p-3">
+          <div className="mt-6 bg-joyxora-dark border border-joyxora-green rounded p-3">
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs">STATUS:</span>
               <span className="text-xs text-joyxora-green">ONLINE</span>
@@ -280,7 +280,7 @@ const Dashboard: React.FC = () => {
             <>
               {/* backdrop */}
               <motion.div
-                className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+                className="fixed inset-0 bg-joyxora-dark z-40 lg:hidden"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -301,7 +301,7 @@ const Dashboard: React.FC = () => {
                       <Shield className="w-5 h-5 text-joydora-dark" />
                     </div>
                     <div>
-                      <div className="text-sm font-bold">CYBERVAULT</div>
+                      <div className="text-sm font-bold">JOYXORA</div>
                       <div className="text-xs text-joyxora-green">v2.1</div>
                     </div>
                   </div>
@@ -401,11 +401,11 @@ const Dashboard: React.FC = () => {
           <div className="h-full">{renderContent()}</div>
 
           {/* Footer */}
-          <div className="mt-4 flex justify-between text-xs text-green-700">
+          <div className="fixed bottom-0 lg:mt-4 flex justify-between text-xs text-joyxora-green">
             <div className="flex gap-4">
-              <span className="text-red-400">⚠ STEALTH MODE</span>
-              <span className="text-green-400">✓ VPN TUNNELING: OFF</span>
-              <span className="text-green-400">✓ USER SHADOW</span>
+              <span className="text-joyxora-green>⚠ STEALTH MODE</span>
+              <span className="text-joyxora-green">✓ VPN TUNNELING: OFF</span>
+              <span className="text-joyxora-green">✓ USER SHADOW</span>
             </div>
             <div className="flex gap-4 items-center">
               <button
@@ -434,68 +434,63 @@ const Dashboard: React.FC = () => {
   );
 };
 
-/* -----------------------------
-   Reused / existing feature components
-   (kept exactly like your original versions)
-   ----------------------------- */
-
 const AppEncryption = () => (
-  <div className="border-2 border-green-900 rounded-lg p-6 bg-black">
+  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
     <div className="flex items-center gap-3 mb-4">
-      <Lock className="w-6 h-6 text-green-400" />
+      <Lock className="w-6 h-6 text-joyxora-green" />
       <h2 className="text-xl font-bold">FILE DECRYPTION MATRIX</h2>
     </div>
-    <p className="text-xs text-green-600 mb-6">
+    <p className="text-xs text-joyxora-green mb-6">
       &gt; SELECT ENCRYPTED FILES TO DECRYPT
     </p>
-    <div className="text-center py-16 border-2 border-dashed border-green-900 rounded-lg">
-      <Lock className="w-16 h-16 mx-auto text-green-400 mb-4" />
+    <div className="text-center py-16 border-2 border-dashed border-joyxora-green rounded-lg">
+      <Lock className="w-16 h-16 mx-auto text-joyxora-green mb-4" />
       <p className="text-lg font-bold mb-2">NO ENCRYPTED FILES SELECTED</p>
-      <p className="text-xs text-green-600">Upload encrypted files to decrypt them</p>
+      <p className="text-xs text-joyxora-green">Upload encrypted files to decrypt them</p>
     </div>
   </div>
 );
 
 const Messaging = () => (
-  <div className="border-2 border-green-900 rounded-lg p-6 bg-black">
+  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
     <div className="flex items-center gap-3 mb-4">
-      <MessageSquare className="w-6 h-6 text-green-400" />
+      <MessageSquare className="w-6 h-6 text-joyxora-green" />
       <h2 className="text-xl font-bold">SECURE MESSAGING PROTOCOL</h2>
     </div>
-    <p className="text-xs text-green-600 mb-6">
+    <p className="text-xs text-joyxora-green mb-6">
       &gt; END-TO-END ENCRYPTED COMMUNICATIONS
     </p>
     <div className="space-y-4">
-      <div className="bg-gray-900 border border-green-900 rounded-lg p-4">
-        <p className="text-sm text-green-300 mb-4">Generate anonymous invite link for secure communication</p>
-        <button className="w-full px-6 py-3 bg-green-500 text-black rounded hover:bg-green-400 transition-colors font-bold">
+      <div className="bg-joyxora-dark border border-joyxora-green rounded-lg p-4">
+        <p className="text-sm text-joyxora-green mb-4">Generate anonymous invite link for secure communication</p>
+        <button className="w-full px-6 py-3 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
           GENERATE INVITE LINK
         </button>
       </div>
-      <div className="border-2 border-dashed border-green-900 rounded-lg p-12 text-center">
-        <MessageSquare className="w-16 h-16 mx-auto text-green-400 mb-4" />
-        <p className="text-green-300">No active conversations</p>
-        <p className="text-xs text-green-600 mt-2">Share invite link to start messaging</p>
+      <div className="border-2 border-dashed border-joyxora-green rounded-lg p-12 text-center">
+        <MessageSquare className="w-16 h-16 mx-auto text-joyxora-green mb-4" />
+        <p className="text-joyxora-green">No active conversations</p>
+        <p className="text-xs text-joyxora-green mt-2">Share invite link to start messaging</p>
       </div>
     </div>
   </div>
 );
 
 const ChatbotView = () => (
-  <div className="border-2 border-green-900 rounded-lg p-6 bg-black h-full flex flex-col">
+  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark h-full flex flex-col">
     <div className="flex items-center gap-3 mb-4">
-      <Bot className="w-6 h-6 text-green-400" />
+      <Bot className="w-6 h-6 text-joyxora-green" />
       <h2 className="text-xl font-bold">AI SECURITY ASSISTANT</h2>
     </div>
-    <p className="text-xs text-green-600 mb-6">
+    <p className="text-xs text-joyxora-green mb-6">
       &gt; INTELLIGENT THREAT ANALYSIS & RECOMMENDATIONS
     </p>
 
-    <div className="flex-1 bg-gray-900 border border-green-900 rounded-lg p-4 mb-4 overflow-auto">
+    <div className="flex-1 bg-joyxora-dark border border-joyxora-green rounded-lg p-4 mb-4 overflow-auto">
       <div className="space-y-4">
-        <div className="bg-gray-800 border border-green-500/30 rounded-lg p-4 max-w-md">
-          <p className="text-sm text-green-300">
-            <span className="text-green-400 font-bold">[ASSISTANT]:</span> Security protocols initialized. How can I assist you with encryption today?
+        <div className="bg-joyxora-dark border border-joyxora-green rounded-lg p-4 max-w-md">
+          <p className="text-sm text-joyxora-green">
+            <span className="text-joyxora-green font-bold">[ASSISTANT]:</span> Security protocols initialized. How can I assist you with encryption today?
           </p>
         </div>
       </div>
@@ -505,9 +500,9 @@ const ChatbotView = () => (
       <input
         type="text"
         placeholder="Enter command or query..."
-        className="flex-1 px-4 py-3 bg-gray-900 text-green-400 border border-green-900 rounded focus:outline-none focus:border-green-500 placeholder-green-800"
+        className="flex-1 px-4 py-3 bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green placeholder-joyxora-green"
       />
-      <button className="px-6 py-3 bg-green-500 text-black rounded hover:bg-green-400 transition-colors font-bold">
+      <button className="px-6 py-3 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
         SEND
       </button>
     </div>
@@ -515,25 +510,25 @@ const ChatbotView = () => (
 );
 
 const TerminalView = () => (
-  <div className="border-2 border-green-900 rounded-lg p-6 bg-black">
+  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
     <div className="flex items-center gap-3 mb-4">
-      <Terminal className="w-6 h-6 text-green-400" />
+      <Terminal className="w-6 h-6 text-joyxora-green" />
       <h2 className="text-xl font-bold">COMMAND INTERFACE</h2>
     </div>
-    <p className="text-xs text-green-600 mb-6">
+    <p className="text-xs text-joyxora-green mb-6">
       &gt; DIRECT SYSTEM ACCESS • TYPE 'HELP' FOR COMMANDS
     </p>
 
-    <div className="bg-black border-2 border-green-500 rounded-lg p-6 font-mono text-sm h-[500px] overflow-auto">
-      <div className="text-green-400">
-        <p className="mb-2">CyberVault Terminal v2.1</p>
-        <p className="mb-4 text-green-300">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
+    <div className="bg-joyxora-dark border-2 border-joyxora-green rounded-lg p-6 font-mono text-sm h-[500px] overflow-auto">
+      <div className="text-joyxora-green">
+        <p className="mb-2">JOYXORA Terminal v2.1</p>
+        <p className="mb-4 text-joyxora-green">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
         <div className="space-y-2">
           <div>
-            <span className="text-green-500">root@cybervault:~$</span>
-            <span className="text-white ml-2">help</span>
+            <span className="text-joyxora-green">root@joyxora:~$</span>
+            <span className="text-joyxora-green ml-2">help</span>
           </div>
-          <div className="ml-4 text-green-300 space-y-1">
+          <div className="ml-4 text-joyxora-green space-y-1">
             <p>Available commands:</p>
             <p className="ml-4">• encrypt [file] - Encrypt specified file</p>
             <p className="ml-4">• decrypt [file] - Decrypt specified file</p>
@@ -543,8 +538,8 @@ const TerminalView = () => (
             <p className="ml-4">• clear - Clear terminal screen</p>
           </div>
           <div className="mt-4">
-            <span className="text-green-500">root@cybervault:~$</span>
-            <span className="text-white ml-2 animate-pulse">_</span>
+            <span className="text-joyxora-green">root@joyxora:~$</span>
+            <span className="text-joyxora-green ml-2 animate-pulse">_</span>
           </div>
         </div>
       </div>
@@ -553,19 +548,19 @@ const TerminalView = () => (
 );
 
 const Vault = () => (
-  <div className="border-2 border-green-900 rounded-lg p-6 bg-black">
+  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
     <div className="flex items-center gap-3 mb-4">
-      <Archive className="w-6 h-6 text-green-400" />
+      <Archive className="w-6 h-6 text-joyxora-green" />
       <h2 className="text-xl font-bold">APPLICATION VAULT</h2>
     </div>
-    <p className="text-xs text-green-600 mb-6">
+    <p className="text-xs text-joyxora-green mb-6">
       &gt; PROTECTED APPLICATION STORAGE
     </p>
-    <div className="border-2 border-dashed border-green-900 rounded-lg p-16 text-center">
-      <Shield className="w-16 h-16 mx-auto text-green-400 mb-4" />
+    <div className="border-2 border-dashed border-joyxora-green rounded-lg p-16 text-center">
+      <Shield className="w-16 h-16 mx-auto text-joyxora-green mb-4" />
       <p className="text-lg font-bold mb-2">VAULT IS EMPTY</p>
-      <p className="text-xs text-green-600">No applications are currently protected</p>
-      <button className="mt-6 px-6 py-3 bg-green-500 text-black rounded hover:bg-green-400 transition-colors font-bold">
+      <p className="text-xs text-joyxora-green">No applications are currently protected</p>
+      <button className="mt-6 px-6 py-3 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
         ADD APPLICATIONS
       </button>
     </div>
@@ -573,52 +568,52 @@ const Vault = () => (
 );
 
 const ProfileView = ({ user, onLogout }: { user: any; onLogout: () => void }) => (
-  <div className="border-2 border-green-900 rounded-lg p-6 bg-black">
+  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
     <div className="flex items-center gap-3 mb-4">
-      <Settings className="w-6 h-6 text-green-400" />
+      <Settings className="w-6 h-6 text-joyxora-green" />
       <h2 className="text-xl font-bold">SYSTEM CONFIGURATION</h2>
     </div>
-    <p className="text-xs text-green-600 mb-6">
+    <p className="text-xs text-joyxora-green mb-6">
       &gt; USER PROFILE & SYSTEM SETTINGS
     </p>
 
     <div className="space-y-6">
-      <div className="flex items-center gap-4 pb-6 border-b border-green-900">
-        <div className="w-20 h-20 bg-green-500 rounded flex items-center justify-center text-3xl text-black font-bold">
+      <div className="flex items-center gap-4 pb-6 border-b border-joyxora-green">
+        <div className="w-20 h-20 bg-joyxora-green rounded flex items-center justify-center text-3xl text-joyxora-dark font-bold">
           {user.email?.[0]?.toUpperCase() || 'U'}
         </div>
         <div>
-          <h3 className="text-xl font-bold text-green-400">{user.username || 'User'}</h3>
-          <p className="text-green-600 text-sm">{user.email}</p>
-          <p className="text-green-700 text-xs mt-1">ID: JX-{user.id || '12345'}</p>
+          <h3 className="text-xl font-bold text-joyxora-green">{user.username || 'User'}</h3>
+          <p className="text-joyxora-green text-sm">{user.email}</p>
+          <p className="text-joyxora-green text-xs mt-1">ID: JX-{user.id || '12345'}</p>
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-green-400 mb-2">USERNAME</label>
+        <label className="block text-xs font-bold text-joyxora-green mb-2">USERNAME</label>
         <input
           type="text"
-          className="w-full px-4 py-2 bg-gray-900 text-green-400 border border-green-900 rounded focus:outline-none focus:border-green-500"
+          className="w-full px-4 py-2 bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green"
           value={user.username || ''}
           readOnly
         />
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-green-400 mb-2">EMAIL ADDRESS</label>
+        <label className="block text-xs font-bold text-joyxora-green mb-2">EMAIL ADDRESS</label>
         <input
           type="email"
-          className="w-full px-4 py-2 bg-gray-900 text-green-400 border border-green-900 rounded focus:outline-none focus:border-green-500"
+          className="w-full px-4 py-2 bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green"
           value={user.email || ''}
           readOnly
         />
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-green-400 mb-2">SECURITY LEVEL</label>
+        <label className="block text-xs font-bold text-joyxora-green mb-2">SECURITY LEVEL</label>
         <div className="flex items-center gap-2">
-          <div className="flex-1 bg-gray-900 rounded-full h-2">
-            <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+          <div className="flex-1 bg-joyxora-dark rounded-full h-2">
+            <div className="bg-joyxora-green h-2 rounded-full" style={{ width: '100%' }}></div>
           </div>
           <span className="text-xs text-red-400">MAXIMUM</span>
         </div>
