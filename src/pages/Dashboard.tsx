@@ -164,7 +164,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div>
-            <h1 className="text-1xl md:text-2xl font-bold text-joyxora-green">JOYXORA</h1>
+            <h1 className="text-xs md:text-2xl font-bold text-joyxora-green">JOYXORA</h1>
             <p className="text-xs text-joyxora-green">SECURE ENCRYPTION SYSTEM v2.1</p>
           </div>
         </div>
@@ -402,12 +402,12 @@ const Dashboard: React.FC = () => {
 
           {/* Footer */}
           <div className="fixed bottom-0 margin-auto flex justify-center items-center text-xs text-joyxora-green">
-            <div className="flex gap-2 md:gap-4 lg:gap-5">
+            <div className="flex gap-1 md:gap-4 lg:gap-5">
               <span className="text-joyxora-green">⚠ STEALTH MODE</span>
               <span className="text-joyxora-green">✓ VPN TUNNELING: OFF</span>
               <span className="text-joyxora-green">✓ USER SHADOW</span>
             </div>
-            <div className="flex gap-3 md:gap-4 lg:gap-5 items-center">
+            <div className="flex gap-2 md:gap-4 lg:gap-5 items-center">
               <button
                 onClick={handleLogout}
                 className="text-red-400 hover:text-red-300 transition-colors"
@@ -502,7 +502,7 @@ const ChatbotView = () => (
         placeholder="Enter command or query..."
         className="flex-1 px-4 py-3 bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green placeholder-joyxora-green"
       />
-      <button className="px-4 py-2 md:px-6 md:py-3 lg:px-7 lg:py-4 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
+      <button className="px-3 py-1 md:px-6 md:py-3 lg:px-7 lg:py-4 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
         SEND
       </button>
     </div>
@@ -519,7 +519,9 @@ const TerminalView = () => (
       &gt; DIRECT SYSTEM ACCESS • TYPE 'HELP' FOR COMMANDS
     </p>
 
+
     <div className="bg-joyxora-dark border-2 border-joyxora-green rounded-lg p-6 font-mono text-sm h-[500px] overflow-auto">
+
       <div className="text-joyxora-green">
         <p className="mb-2">JOYXORA Terminal v2.1</p>
         <p className="mb-4 text-joyxora-green">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
@@ -528,7 +530,7 @@ const TerminalView = () => (
             <span className="text-joyxora-green">root@joyxora:~$</span>
             <span className="text-joyxora-green ml-2">help</span>
           </div>
-          <div className="ml-4 text-joyxora-green space-y-1">
+          <div className="hidden md:block lg:block ml-4 text-joyxora-green space-y-1">
             <p>Available commands:</p>
             <p className="ml-4">• encrypt [file] - Encrypt specified file</p>
             <p className="ml-4">• decrypt [file] - Decrypt specified file</p>
@@ -546,7 +548,6 @@ const TerminalView = () => (
     </div>
   </div>
 );
-
 const Vault = () => (
   <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
     <div className="flex items-center gap-3 mb-4">
