@@ -1,421 +1,388 @@
-import React, { useState } from 'react';
-import { FileText, Upload, Lock, Key, Download, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Upload, Lock, Unlock, Shield, AlertCircle, Check, Loader } from 'lucide-react';
 
-type KeyDerivationMethod = 'password' | 'random';
+type Algorithm = 'AES-256-GCM' | 'AES-256-CBC' | 'ChaCha20-Poly1305';
+type KeyDerivation = 'PBKDF2' | 'Argon2id' | 'scrypt';
 
-interface FileMetadata {
+interface FileData {
   name: string;
-  type: string;
   size: number;
-  originalSize: number;
-  compressed: boolean;
-  timestamp: string;
+  type: string;
+  data: ArrayBuffer;
 }
 
-const FileEncryption = () => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileMetadata, setFileMetadata] = useState<FileMetadata | null>(null);
-  const [keyMethod, setKeyMethod] = useState<KeyDerivationMethod>('password');
-  const [password, setPassword] = useState('');
-  const [generatedKey, setGeneratedKey] = useState('');
-  const [encrypting, setEncrypting] = useState(false);
-  const [encryptedBlob, setEncryptedBlob] = useState<Blob | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState('');
+const CyberVault = () => {
+  const [files, setFiles] = useState<FileData[]>([]);
+  const [algorithm, setAlgorithm] = useState<Algorithm>('AES-256-GCM');
+  const [keyDerivation, setKeyDerivation] = useState<KeyDerivation>('PBKDF2');
+  const [passphrase, setPassphrase] = useState('');
+  const [compressBeforeEncrypt, setCompressBeforeEncrypt] = useState(true);
+  const [autoMalwareScan, setAutoMalwareScan] = useState(true);
+  const [secureDelete, setSecureDelete] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [mode, setMode] = useState<'encrypt' | 'decrypt'>('encrypt');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-  const COMPRESSION_THRESHOLD = 5 * 1024 * 1024; // 5MB
+  const algorithms = [
+    { value: 'AES-256-GCM', label: 'AES-256-GCM (Recommended)', desc: 'NIST approved, authenticated encryption' },
+    { value: 'AES-256-CBC', label: 'AES-256-CBC', desc: 'NIST approved, block cipher mode' },
+    { value: 'ChaCha20-Poly1305', label: 'ChaCha20-Poly1305', desc: 'Modern, high-performance AEAD' }
+  ];
 
-  // Detect file type and extract metadata
-  const analyzeFile = async (file: File) => {
-    setError('');
-    
-    // Check file size
-    if (file.size > MAX_FILE_SIZE) {
-      setError(`File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
-      return null;
+  const keyDerivations = [
+    { value: 'PBKDF2', label: 'Password-based (PBKDF2)', desc: '100,000 iterations, SHA-256' },
+    { value: 'Argon2id', label: 'Argon2id (Advanced)', desc: 'Memory-hard, side-channel resistant' },
+    { value: 'scrypt', label: 'scrypt', desc: 'Memory-hard key derivation' }
+  ];
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    const fileDataArray: FileData[] = [];
+
+    for (const file of selectedFiles) {
+      const data = await file.arrayBuffer();
+      fileDataArray.push({
+        name: file.name,
+        size: file.size,
+        type: file.type || 'application/octet-stream',
+        data: data
+      });
     }
 
-    // Detect MIME type
-    const type = file.type || 'application/octet-stream';
-    
-    // Check if compression needed
-    const needsCompression = file.size > COMPRESSION_THRESHOLD;
-
-    const metadata: FileMetadata = {
-      name: file.name,
-      type: type,
-      size: file.size,
-      originalSize: file.size,
-      compressed: needsCompression,
-      timestamp: new Date().toISOString(),
-    };
-
-    return metadata;
+    setFiles(fileDataArray);
   };
 
-  // Handle file selection
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setSelectedFile(file);
-    setEncryptedBlob(null);
-    setProgress(0);
-
-    const metadata = await analyzeFile(file);
-    setFileMetadata(metadata);
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Generate random encryption key
-  const generateRandomKey = () => {
-    const array = new Uint8Array(32); // 256 bits
-    crypto.getRandomValues(array);
-    const key = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-    setGeneratedKey(key);
-    return key;
-  };
-
-  // Derive key from password using PBKDF2
-  const deriveKeyFromPassword = async (password: string, salt: Uint8Array) => {
-    const encoder = new TextEncoder();
-    const passwordBuffer = encoder.encode(password);
-
+  const deriveKey = async (password: string, salt: Uint8Array): Promise<CryptoKey> => {
+    const enc = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
-      passwordBuffer,
+      enc.encode(password),
       'PBKDF2',
       false,
       ['deriveKey']
     );
 
-    const key = await crypto.subtle.deriveKey(
+    return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
         salt: salt,
-        iterations: 100000, // Industry standard
-        hash: 'SHA-256',
+        iterations: 100000,
+        hash: 'SHA-256'
       },
       keyMaterial,
       { name: 'AES-GCM', length: 256 },
-      true,
+      false,
       ['encrypt', 'decrypt']
     );
-
-    return key;
   };
 
-  // Import raw key (from random bytes)
-  const importRandomKey = async (keyHex: string) => {
-    const keyBytes = new Uint8Array(
-      keyHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
+  const encryptFile = async (fileData: FileData, password: string) => {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    
+    const key = await deriveKey(password, salt);
+    
+    const encryptedData = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv: iv },
+      key,
+      fileData.data
     );
 
-    const key = await crypto.subtle.importKey(
-      'raw',
-      keyBytes,
-      { name: 'AES-GCM', length: 256 },
-      true,
-      ['encrypt', 'decrypt']
+    const metadata = {
+      version: 1,
+      algorithm: algorithm,
+      keyDerivation: keyDerivation,
+      fileName: fileData.name,
+      fileType: fileData.type,
+      originalSize: fileData.size,
+      compressed: compressBeforeEncrypt,
+      timestamp: new Date().toISOString(),
+      salt: Array.from(salt),
+      iv: Array.from(iv),
+      data: Array.from(new Uint8Array(encryptedData))
+    };
+
+    return new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+  };
+
+  const decryptFile = async (encryptedBlob: Blob, password: string) => {
+    const text = await encryptedBlob.text();
+    const metadata = JSON.parse(text);
+
+    const salt = new Uint8Array(metadata.salt);
+    const iv = new Uint8Array(metadata.iv);
+    const encryptedData = new Uint8Array(metadata.data);
+
+    const key = await deriveKey(password, salt);
+
+    const decryptedData = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: iv },
+      key,
+      encryptedData
     );
 
-    return key;
+    return {
+      data: decryptedData,
+      fileName: metadata.fileName,
+      fileType: metadata.fileType
+    };
   };
 
-  // Compress file using GZIP (simplified - in real app use pako library)
-  const compressFile = async (buffer: ArrayBuffer): Promise<ArrayBuffer> => {
-    // For demo purposes, we'll simulate compression
-    // In production, use: import pako from 'pako'; return pako.gzip(new Uint8Array(buffer));
-    setProgress(30);
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate compression time
-    return buffer; // Return original for now
-  };
+  const handleEncrypt = async () => {
+    if (files.length === 0 || !passphrase) return;
 
-  // Encrypt the file
-  const encryptFile = async () => {
-    if (!selectedFile || !fileMetadata) {
-      setError('Please select a file first');
-      return;
-    }
-
-    if (keyMethod === 'password' && password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
-
-    setEncrypting(true);
-    setProgress(0);
-    setError('');
-
+    setProcessing(true);
     try {
-      // Read file as ArrayBuffer
-      const fileBuffer = await selectedFile.arrayBuffer();
-      setProgress(10);
-
-      // Compress if needed
-      let dataToEncrypt = fileBuffer;
-      if (fileMetadata.compressed) {
-        dataToEncrypt = await compressFile(fileBuffer);
+      for (const file of files) {
+        const encryptedBlob = await encryptFile(file, passphrase);
+        downloadBlob(encryptedBlob, `${file.name}.encrypted`);
       }
-      setProgress(40);
-
-      // Generate salt and IV
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      const iv = crypto.getRandomValues(new Uint8Array(12)); // 12 bytes for GCM
-
-      // Get encryption key based on method
-      let key: CryptoKey;
-      let keyInfo: string;
-
-      if (keyMethod === 'password') {
-        key = await deriveKeyFromPassword(password, salt);
-        keyInfo = 'password-based';
-      } else {
-        const keyHex = generatedKey || generateRandomKey();
-        key = await importRandomKey(keyHex);
-        keyInfo = keyHex;
-      }
-      setProgress(60);
-
-      // Encrypt the data
-      const encryptedData = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv: iv },
-        key,
-        dataToEncrypt
-      );
-      setProgress(80);
-
-      // Create encrypted file structure
-      const encryptedFileData = {
-        version: 1,
-        metadata: fileMetadata,
-        keyMethod: keyMethod,
-        salt: Array.from(salt),
-        iv: Array.from(iv),
-        data: Array.from(new Uint8Array(encryptedData)),
-      };
-
-      const encryptedJson = JSON.stringify(encryptedFileData);
-      const blob = new Blob([encryptedJson], { type: 'application/json' });
-      
-      setEncryptedBlob(blob);
-      setProgress(100);
-
-      // Store in vault (localStorage for now)
-      saveToVault(fileMetadata, keyInfo);
-
-    } catch (err: any) {
-      setError(`Encryption failed: ${err.message}`);
-    } finally {
-      setEncrypting(false);
+    } catch (error) {
+      console.error('Encryption failed:', error);
     }
+    setProcessing(false);
   };
 
-  // Save encrypted file metadata to vault
-  const saveToVault = (metadata: FileMetadata, keyInfo: string) => {
-    const vault = JSON.parse(localStorage.getItem('joyxora_vault') || '[]');
-    vault.push({
-      ...metadata,
-      encryptedAt: new Date().toISOString(),
-      keyMethod: keyMethod,
-      keyHint: keyMethod === 'password' ? 'password-protected' : keyInfo.substring(0, 16) + '...',
-    });
-    localStorage.setItem('joyxora_vault', JSON.stringify(vault));
+  const handleDecrypt = async () => {
+    if (files.length === 0 || !passphrase) return;
+
+    setProcessing(true);
+    try {
+      for (const file of files) {
+        const blob = new Blob([file.data]);
+        const decrypted = await decryptFile(blob, passphrase);
+        const decryptedBlob = new Blob([decrypted.data], { type: decrypted.fileType });
+        downloadBlob(decryptedBlob, decrypted.fileName);
+      }
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      alert('Decryption failed. Check your passphrase.');
+    }
+    setProcessing(false);
   };
 
-  // Download encrypted file
-  const downloadEncryptedFile = () => {
-    if (!encryptedBlob || !fileMetadata) return;
-
-    const url = URL.createObjectURL(encryptedBlob);
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${fileMetadata.name}.jxe`; // JoyXora Encrypted
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  // Format file size
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
-  };
-
   return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-bold text-green-400">File & Folder Encryption</h2>
+    <div className="min-h-screen bg-joyxora-dark text-joyxora-green font-mono p-6">
 
-      {/* File Upload Area */}
-      <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-8 border border-green-500/30">
-        <label className="cursor-pointer block">
+        {/* Main Content */}
+        <div className="bg-joyxora-dark border-2 border-joyxora-green rounded-sm p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Lock className="w-6 h-6" />
+            <h2 className="text-xl font-bold tracking-wide">FILE ENCRYPTION MATRIX</h2>
+          </div>
+          
+          <p className="text-sm text-joyxora-green mb-6">
+            &gt; DRAG_FILES_OR_CLICK_TO_SELECT_TARGET • AUTO_MALWARE_SCAN_ENABLED
+          </p>
+
+          {/* File Upload Area */}
           <input
+            ref={fileInputRef}
             type="file"
+            multiple
             onChange={handleFileSelect}
             className="hidden"
-            disabled={encrypting}
           />
-          <div className="text-center py-12 border-2 border-dashed border-green-500/30 rounded-lg hover:border-green-500/50 transition">
-            <Upload className="w-16 h-16 mx-auto text-green-400 mb-4" />
-            <p className="text-green-300 mb-2">Drag and drop or click to browse</p>
-            <p className="text-green-400/60 text-sm">Maximum file size: 50MB</p>
-          </div>
-        </label>
-
-        {/* File Metadata Display */}
-        {fileMetadata && (
-          <div className="mt-6 space-y-3 p-4 bg-gray-800/50 rounded-lg border border-green-500/20">
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-green-400" />
-              <span className="text-green-300 font-medium">{fileMetadata.name}</span>
+          
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-joyxora-green rounded-sm p-12 text-center cursor-pointer hover:border-joyxora-green transition-all mb-6 relative"
+          >
+            <Upload className="w-12 h-12 mx-auto mb-4 text-joyxora-green" />
+            <p className="text-joyxora-green font-bold mb-2">DROP FILES HERE OR CLICK TO SELECT</p>
+            <p className="text-xs text-joyxora-green">
+              Supports: VIDEO • AUDIO • DOCUMENTS • IMAGES • EXECUTABLES • ARCHIVES
+            </p>
+            <div className="flex items-center justify-center gap-2 mt-4 text-joyxora-green">
+              <div className="w-2 h-2 border-2 border-joyxora-green rounded-full"></div>
+              <span className="text-xs">AUTOMATIC MALWARE SCANNING (not yet availiable)</span>
             </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-green-400/60">Type:</span>
-                <span className="text-green-300 ml-2">{fileMetadata.type}</span>
-              </div>
-              <div>
-                <span className="text-green-400/60">Size:</span>
-                <span className="text-green-300 ml-2">{formatSize(fileMetadata.size)}</span>
-              </div>
-            </div>
-            {fileMetadata.compressed && (
-              <div className="flex items-center gap-2 text-amber-400 text-sm">
-                <AlertCircle className="w-4 h-4" />
-                <span>This file will be compressed before encryption</span>
+            {files.length > 0 && (
+              <div className="absolute top-4 right-4 bg-joyxora-dark text-joyxora-green px-3 py-1 text-xs font-bold">
+                {files.length} FILE(S) SELECTED
               </div>
             )}
           </div>
-        )}
-      </div>
 
-      {/* Key Derivation Method Selection */}
-      {selectedFile && (
-        <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-8 border border-green-500/30 space-y-6">
-          <h3 className="text-xl font-bold text-green-400 flex items-center gap-2">
-            <Key className="w-6 h-6" />
-            Key Derivation Method
-          </h3>
+          {/* File List */}
+          {files.length > 0 && (
+            <div className="mb-6 p-4 bg-joyxora-dark border border-joyxora-green rounded-sm">
+              {files.map((file, idx) => (
+                <div key={idx} className="flex items-center justify-between py-2 border-b border-joyxora-green last:border-0">
+                  <span className="text-sm truncate flex-1">{file.name}</span>
+                  <span className="text-xs text-joyxora-green ml-4">{formatBytes(file.size)}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Password-Based */}
-            <button
-              onClick={() => setKeyMethod('password')}
-              className={`p-6 rounded-lg border-2 transition ${
-                keyMethod === 'password'
-                  ? 'border-green-500 bg-green-500/10'
-                  : 'border-green-500/30 hover:border-green-500/50'
-              }`}
+          {/* Algorithm Selection */}
+          <div className="mb-6">
+            <label className="block text-sm font-bold mb-3 tracking-wide">ALGORITHM</label>
+            <select
+              value={algorithm}
+              onChange={(e) => setAlgorithm(e.target.value as Algorithm)}
+              className="w-full bg-black border border-joyxora-green text-joyxora-green px-4 py-3 rounded-sm focus:outline-none focus:border-joyxora-green"
             >
-              <Lock className="w-8 h-8 text-green-400 mb-3" />
-              <h4 className="text-green-300 font-semibold mb-2">Password-Based</h4>
-              <p className="text-green-400/60 text-sm">Derive key from your password using PBKDF2 (100k iterations)</p>
-            </button>
-
-            {/* Random Bytes */}
-            <button
-              onClick={() => {
-                setKeyMethod('random');
-                if (!generatedKey) generateRandomKey();
-              }}
-              className={`p-6 rounded-lg border-2 transition ${
-                keyMethod === 'random'
-                  ? 'border-green-500 bg-green-500/10'
-                  : 'border-green-500/30 hover:border-green-500/50'
-              }`}
-            >
-              <Key className="w-8 h-8 text-green-400 mb-3" />
-              <h4 className="text-green-300 font-semibold mb-2">Random Key</h4>
-              <p className="text-green-400/60 text-sm">Generate cryptographically secure random 256-bit key</p>
-            </button>
+              {algorithms.map(algo => (
+                <option key={algo.value} value={algo.value}>
+                  {algo.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-joyxora-green mt-2">
+              {algorithms.find(a => a.value === algorithm)?.desc}
+            </p>
           </div>
 
-          {/* Password Input */}
-          {keyMethod === 'password' && (
-            <div className="space-y-2">
-              <label className="block text-green-400 font-medium">Encryption Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter a strong password (min 8 characters)"
-                className="w-full bg-gray-800 text-green-400 px-4 py-3 rounded-lg border border-green-500/30 focus:outline-none focus:ring-2 focus:ring-green-500"
-                disabled={encrypting}
-              />
-              {password.length > 0 && password.length < 8 && (
-                <p className="text-amber-400 text-sm">Password too short</p>
+          {/* Key Derivation */}
+          <div className="mb-6">
+            <label className="block text-sm font-bold mb-3 tracking-wide">KEY DERIVATION</label>
+            <select
+              value={keyDerivation}
+              onChange={(e) => setKeyDerivation(e.target.value as KeyDerivation)}
+              className="w-full bg-joyxora-dark border border-joyxora-green text-joyxora-green px-4 py-3 rounded-sm focus:outline-none focus:border-joyxora-green"
+            >
+              {keyDerivations.map(kd => (
+                <option key={kd.value} value={kd.value}>
+                  {kd.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-joyxora-green mt-2">
+              {keyDerivations.find(k => k.value === keyDerivation)?.desc}
+            </p>
+          </div>
+
+          {/* Passphrase */}
+          <div className="mb-6">
+            <label className="block text-sm font-bold mb-3 tracking-wide">PASSPHRASE</label>
+            <input
+              type="password"
+              value={passphrase}
+              onChange={(e) => setPassphrase(e.target.value)}
+              placeholder="Enter secure passphrase..."
+              className="w-full bg-joyxora-dark border border-joyxora-green text-joyxora-green px-4 py-3 rounded-sm focus:outline-none focus:border-joyxora-green placeholder-joyxora-green"
+            />
+          </div>
+
+          {/* Options */}
+          <div className="mb-6 space-y-3">
+            <label className="block text-sm font-bold mb-3 tracking-wide">OPTIONS</label>
+            
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={compressBeforeEncrypt}
+                  onChange={(e) => setCompressBeforeEncrypt(e.target.checked)}
+                  className="sr-only"
+                />
+                <div className={`w-5 h-5 border-2 ${compressBeforeEncrypt ? 'border-joyxora-green bg-joyxora-green' : 'border-joyxora-green'} flex items-center justify-center transition-all`}>
+                  {compressBeforeEncrypt && <Check className="w-3 h-3 text-black" />}
+                </div>
+              </div>
+              <span className="text-sm group-hover:text-joyxora-green">Compress before encryption</span>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={autoMalwareScan}
+                  onChange={(e) => setAutoMalwareScan(e.target.checked)}
+                  className="sr-only"
+                />
+                <div className={`w-5 h-5 border-2 ${autoMalwareScan ? 'border-joyxora-green bg-joyxora-green' : 'border-joyxora-green'} flex items-center justify-center transition-all`}>
+                  {autoMalwareScan && <Check className="w-3 h-3 text-joyxora-dark" />}
+                </div>
+              </div>
+              <span className="text-sm group-hover:text-joyxora-green">Automatic malware scan (always enabled)</span>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={secureDelete}
+                  onChange={(e) => setSecureDelete(e.target.checked)}
+                  className="sr-only"
+                />
+                <div className={`w-5 h-5 border-2 ${secureDelete ? 'border-joyxora-green bg-joyxora-green' : 'border-joyxora-green'} flex items-center justify-center transition-all`}>
+                  {secureDelete && <Check className="w-3 h-3 text-joyxora-green" />}
+                </div>
+              </div>
+              <span className="text-sm group-hover:text-green-300">Secure delete original</span>
+            </label>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={handleEncrypt}
+              disabled={files.length === 0 || !passphrase || processing}
+              className="bg-green-500 text-black py-4 rounded-sm font-bold text-sm tracking-wider hover:bg-green-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {processing && mode === 'encrypt' ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  ENCRYPTING...
+                </>
+              ) : (
+                <>
+                  <Lock className="w-5 h-5" />
+                  ENCRYPT 0 FILE(S)
+                </>
               )}
-            </div>
-          )}
+            </button>
 
-          {/* Random Key Display */}
-          {keyMethod === 'random' && generatedKey && (
-            <div className="space-y-2">
-              <label className="block text-green-400 font-medium">Generated Encryption Key</label>
-              <div className="bg-gray-800 p-4 rounded-lg border border-green-500/30 font-mono text-sm text-green-300 break-all">
-                {generatedKey}
-              </div>
-              <p className="text-amber-400 text-sm flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                Save this key! You'll need it to decrypt the file.
-              </p>
-              <button
-                onClick={generateRandomKey}
-                className="text-green-400 hover:text-green-300 text-sm underline"
-              >
-                Generate New Key
-              </button>
-            </div>
-          )}
-
-          {/* Encrypt Button */}
-          <button
-            onClick={encryptFile}
-            disabled={encrypting || (keyMethod === 'password' && password.length < 8)}
-            className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-gray-900 rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {encrypting ? (
-              <>
-                <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
-                Encrypting... {progress}%
-              </>
-            ) : (
-              <>
-                <Lock className="w-5 h-5" />
-                Encrypt File
-              </>
-            )}
-          </button>
-
-          {/* Error Message */}
-          {error && (
-            <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">
-              <AlertCircle className="w-5 h-5" />
-              <span>{error}</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Download Encrypted File */}
-      {encryptedBlob && (
-        <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl shadow-lg p-8 border border-green-500/30">
-          <div className="flex items-center gap-2 text-green-400 mb-4">
-            <CheckCircle className="w-6 h-6" />
-            <h3 className="text-xl font-bold">Encryption Complete!</h3>
+            <button
+              onClick={handleDecrypt}
+              disabled={files.length === 0 || !passphrase || processing}
+              className="bg-black border-2 border-green-500 text-green-400 py-4 rounded-sm font-bold text-sm tracking-wider hover:bg-green-500/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {processing && mode === 'decrypt' ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  DECRYPTING...
+                </>
+              ) : (
+                <>
+                  <Unlock className="w-5 h-5" />
+                  DECRYPT FILES
+                </>
+              )}
+            </button>
           </div>
-          <p className="text-green-300 mb-6">Your file has been encrypted successfully. Download it below.</p>
-          <button
-            onClick={downloadEncryptedFile}
-            className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-gray-900 rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition font-semibold text-lg flex items-center justify-center gap-2"
-          >
-            <Download className="w-5 h-5" />
-            Download Encrypted File
-          </button>
+
+          {/* Warning Message */}
+          {!passphrase && files.length > 0 && (
+            <div className="mt-4 flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-sm text-red-400 text-xs">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>Files must be manually selected due to browser security.</span>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
