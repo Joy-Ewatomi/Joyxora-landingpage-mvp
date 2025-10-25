@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Lock, Unlock, Shield, AlertCircle, Check, Loader } from 'lucide-react';
+import { Upload, Lock, Unlock, AlertCircle, Check, Loader } from 'lucide-react';
 
 type Algorithm = 'AES-256-GCM' | 'AES-256-CBC' | 'ChaCha20-Poly1305';
 type KeyDerivation = 'PBKDF2' | 'Argon2id' | 'scrypt';
@@ -11,7 +11,7 @@ interface FileData {
   data: ArrayBuffer;
 }
 
-const CyberVault = () => {
+const FileEncryption = () => {
   const [files, setFiles] = useState<FileData[]>([]);
   const [algorithm, setAlgorithm] = useState<Algorithm>('AES-256-GCM');
   const [keyDerivation, setKeyDerivation] = useState<KeyDerivation>('PBKDF2');
@@ -383,7 +383,6 @@ const CyberVault = () => {
           )}
         </div>
       </div>
-    </div>
   );
 };
 
