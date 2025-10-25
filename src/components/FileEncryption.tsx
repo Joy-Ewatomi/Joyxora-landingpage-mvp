@@ -375,8 +375,8 @@ const FileEncryption = () => {
                 onClick={() => setKeyDerivation('PBKDF2')}
                 className={`p-3 sm:p-4 rounded-sm border-2 transition-all text-left ${
                   keyDerivation === 'PBKDF2'
-                    ? 'border-joyxora-green bg-joyxora-green'
-                    : 'border-joyxora-green hover:border-joyxora-green'
+                    ? 'border-joyxora-green bg-joyxora-dark'
+                    : 'border-joyxora-green hover:border-joyxora-darks'
                 }`}
               >
                 <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-joyxora-green mb-2" />
@@ -388,8 +388,8 @@ const FileEncryption = () => {
                 onClick={() => setKeyDerivation('Argon2id')}
                 className={`p-3 sm:p-4 rounded-sm border-2 transition-all text-left ${
                   keyDerivation === 'Argon2id'
-                    ? 'border-joyxora-green bg-joyxora-green'
-                    : 'border-joyxora-green hover:border-joyxora-green'
+                    ? 'border-joyxora-green bg-joyxora-dark'
+                    : 'border-joyxora-green hover:border-joyxora-darks'
                 }`}
               >
                 <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-joyxora-green mb-2" />
@@ -401,8 +401,8 @@ const FileEncryption = () => {
                 onClick={() => setKeyDerivation('scrypt')}
                 className={`p-3 sm:p-4 rounded-sm border-2 transition-all text-left ${
                   keyDerivation === 'scrypt'
-                    ? 'border-joyxora-green bg-joyxora-green'
-                    : 'border-joyxora-green hover:border-joyxora-green'
+                    ? 'border-joyxora-green bg-joyxora-dark'
+                    : 'border-joyxora-green hover:border-joyxora-darks'
                 }`}
               >
                 <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-joyxora-green mb-2" />
@@ -417,8 +417,8 @@ const FileEncryption = () => {
                 }}
                 className={`p-3 sm:p-4 rounded-sm border-2 transition-all text-left ${
                   keyDerivation === 'random'
-                    ? 'border-joyxora-green bg-joyxora-green'
-                    : 'border-joyxora-green hover:border-joyxora-green'
+                    ? 'border-joyxora-green bg-joyxora-dark'
+                    : 'border-joyxora-green hover:border-joyxora-darks'
                 }`}
               >
                 <Key className="w-6 h-6 sm:w-8 sm:h-8 text-joyxora-green mb-2" />
@@ -435,7 +435,7 @@ const FileEncryption = () => {
                   value={passphrase}
                   onChange={(e) => setPassphrase(e.target.value)}
                   placeholder="Enter secure passphrase..."
-                  className="w-full bg-black border border-joyxora-green text-joyxora-green px-3 sm:px-4 py-2 sm:py-3 rounded-sm focus:outline-none focus:border-joyxora-green placeholder-joyxora-green text-xs sm:text-sm"
+                  className="w-full bg-joyxora-dark border border-joyxora-green text-joyxora-green px-3 sm:px-4 py-2 sm:py-3 rounded-sm focus:outline-none focus:border-joyxora-green placeholder-joyxora-green text-xs sm:text-sm"
                 />
               </div>
             )}
@@ -443,13 +443,13 @@ const FileEncryption = () => {
             {/* Random Key Display */}
             {keyDerivation === 'random' && (
               <div className="space-y-3">
-                <div className="bg-black p-3 sm:p-4 rounded-sm border border-joyxora-green font-mono text-xs break-all text-joyxora-green">
+                <div className="bg-joyxora-dark p-3 sm:p-4 rounded-sm border border-joyxora-green font-mono text-xs break-all text-joyxora-green">
                   {randomKey || 'Click "Generate Key" to create a random encryption key'}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <button
                     onClick={generateRandomKey}
-                    className="flex-1 px-3 sm:px-4 py-2 bg-joyxora-green border border-joyxora-green text-joyxora-green rounded-sm hover:bg-joyxora-green transition-all text-xs sm:text-sm font-bold flex items-center justify-center gap-2"
+                    className="flex-1 px-3 sm:px-4 py-2 bg-joyxora-green border border-joyxora-green text-joyxora-green rounded-sm hover:bg-joyxora-dark transition-all text-xs sm:text-sm font-bold flex items-center justify-center gap-2"
                   >
                     <Key className="w-4 h-4" />
                     GENERATE KEY
@@ -457,7 +457,7 @@ const FileEncryption = () => {
                   {randomKey && (
                     <button
                       onClick={() => copyToClipboard(randomKey)}
-                      className="flex-1 px-3 sm:px-4 py-2 bg-joyxora-green border border-joyxora-green text-joyxora-green rounded-sm hover:bg-joyxora-green transition-all text-xs sm:text-sm font-bold flex items-center justify-center gap-2"
+                      className="flex-1 px-3 sm:px-4 py-2 bg-joyxora-green border border-joyxora-green text-joyxora-green rounded-sm hover:bg-joyxora-dark transition-all text-xs sm:text-sm font-bold flex items-center justify-center gap-2"
                     >
                       <Copy className="w-4 h-4" />
                       COPY KEY
@@ -484,7 +484,7 @@ const FileEncryption = () => {
                   onChange={(e) => setCompressBeforeEncrypt(e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-4 h-4 sm:w-5 sm:h-5 border-2 ${compressBeforeEncrypt ? 'border-joyxora-green bg-joyxora-green' : 'border-joyxora-green'} flex items-center justify-center transition-all`}>
+                <div className={`w-4 h-4 sm:w-5 sm:h-5 border-2 ${compressBeforeEncrypt ? 'border-joyxora-green bg-joyxora-dark' : 'border-joyxora-green'} flex items-center justify-center transition-all`}>
                   {compressBeforeEncrypt && <Check className="w-2 h-2 sm:w-3 sm:h-3 text-joyxora-dark" />}
                 </div>
               </div>
@@ -499,7 +499,7 @@ const FileEncryption = () => {
                   onChange={(e) => setAutoMalwareScan(e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-4 h-4 sm:w-5 sm:h-5 border-2 ${autoMalwareScan ? 'border-joyxora-green bg-joyxora-green' : 'border-joyxora-green'} flex items-center justify-center transition-all`}>
+                <div className={`w-4 h-4 sm:w-5 sm:h-5 border-2 ${autoMalwareScan ? 'border-joyxora-green bg-joyxora-dark' : 'border-joyxora-green'} flex items-center justify-center transition-all`}>
                   {autoMalwareScan && <Check className="w-2 h-2 sm:w-3 sm:h-3 text-joyxora-dark" />}
                 </div>
               </div>
@@ -514,7 +514,7 @@ const FileEncryption = () => {
                   onChange={(e) => setSecureDelete(e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-4 h-4 sm:w-5 sm:h-5 border-2 ${secureDelete ? 'border-joyxora-green bg-joyxora-green' : 'border-joyxora-green'} flex items-center justify-center transition-all`}>
+                <div className={`w-4 h-4 sm:w-5 sm:h-5 border-2 ${secureDelete ? 'border-joyxora-green bg-joyxora-dark' : 'border-joyxora-green'} flex items-center justify-center transition-all`}>
                   {secureDelete && <Check className="w-2 h-2 sm:w-3 sm:h-3 text-joyxora-dark" />}
                 </div>
               </div>
@@ -527,7 +527,7 @@ const FileEncryption = () => {
             <button
               onClick={handleEncrypt}
               disabled={files.length === 0 || processing || (keyDerivation !== 'random' && !passphrase) || (keyDerivation === 'random' && !randomKey)}
-              className="bg-joyxora-green text-joyxora-dark py-3 sm:py-4 rounded-sm font-bold text-xs sm:text-sm tracking-wider hover:bg-joyxora-green transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="bg-joyxora-green text-joyxora-dark py-3 sm:py-4 rounded-sm font-bold text-xs sm:text-sm tracking-wider hover:bg-joyxora-darks transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {processing && mode === 'encrypt' ? (
                 <>
@@ -545,7 +545,7 @@ const FileEncryption = () => {
             <button
               onClick={handleDecrypt}
               disabled={files.length === 0 || processing || (keyDerivation !== 'random' && !passphrase) || (keyDerivation === 'random' && !randomKey)}
-              className="bg-black border-2 border-joyxora-green text-joyxora-green py-3 sm:py-4 rounded-sm font-bold text-xs sm:text-sm tracking-wider hover:bg-joyxora-green transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="bg-joyxora-dark border-2 border-joyxora-green text-joyxora-green py-3 sm:py-4 rounded-sm font-bold text-xs sm:text-sm tracking-wider hover:bg-joyxora-green transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {processing && mode === 'decrypt' ? (
                 <>
@@ -563,7 +563,7 @@ const FileEncryption = () => {
 
           {/* Processed Files Download Section */}
           {processedFiles.length > 0 && (
-            <div className="p-3 sm:p-4 bg-joyxora-green border border-joyxora-green rounded-sm space-y-3">
+            <div className="p-3 sm:p-4 bg-joyxora-dark border border-joyxora-green rounded-sm space-y-3">
               <div className="flex items-center gap-2 text-joyxora-green">
                 <Check className="w-5 h-5" />
                 <span className="font-bold text-sm sm:text-base">
@@ -576,7 +576,7 @@ const FileEncryption = () => {
                     <span className="truncate flex-1">{file.name}</span>
                     <button
                       onClick={() => downloadFile(file.blob, file.name)}
-                      className="px-2 sm:px-3 py-1 bg-joyxora-green border border-joyxora-green text-joyxora-green rounded-sm hover:bg-joyxora-green transition-all flex items-center gap-1 flex-shrink-0"
+                      className="px-2 sm:px-3 py-1 bg-joyxora-dark border border-joyxora-green text-joyxora-green rounded-sm hover:bg-joyxora-green transition-all flex items-center gap-1 flex-shrink-0"
                     >
                       <Download className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">DOWNLOAD</span>
@@ -605,7 +605,7 @@ const FileEncryption = () => {
 
           {/* Info Messages */}
           {files.length > 0 && !processing && processedFiles.length === 0 && (
-            <div className="mt-4 flex items-start gap-2 p-2 sm:p-3 bg-joyxora-darks border border-joyxora-darks rounded-sm text-joyxora-darks text-xs">
+            <div className="mt-4 flex items-start gap-2 p-2 sm:p-3 bg-joyxora-darks border border-joyxora-darks rounded-sm text-joyxora-green text-xs">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>
                 {secureDelete 
