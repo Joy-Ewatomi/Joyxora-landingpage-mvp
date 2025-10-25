@@ -401,7 +401,7 @@ const Dashboard: React.FC = () => {
           <div className="h-full">{renderContent()}</div>
 
           {/* Footer */}
-          <div className="flex justify-center items-center text-xs text-joyxora-green hidden sm:hidden md:block lg:block fixed bg-joyxora-dark w-ful h-1 left-0 bottom-0 right-0">
+          <div className="flex justify-center items-center text-xs text-joyxora-green hidden sm:hidden md:block lg:block fixed bg-joyxora-dark w-full h-10 left-0 bottom-0 right-0">
             <div className="flex gap-1 sm:gap-3 md:gap-4 lg:gap-5">
               <span className="text-joyxora-green">⚠ STEALTH MODE</span>
               <span className="text-joyxora-green">✓ VPN TUNNELING: OFF</span>
@@ -561,7 +561,7 @@ const Vault = () => (
       <Shield className="w-16 h-16 mx-auto text-joyxora-green mb-4" />
       <p className="text-lg font-bold mb-2">VAULT IS EMPTY</p>
       <p className="text-xs text-joyxora-green">No applications are currently protected</p>
-      <button className="mt-6 px-6 py-6 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
+      <button className="mt-6 px-4 py-4 sm:px-6 sm:py-6 md:px-6 md:py-6 lg:px-6 lg:py-6 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
         ADD APPLICATIONS
       </button>
     </div>
