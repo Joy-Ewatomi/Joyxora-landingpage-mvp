@@ -401,13 +401,13 @@ const Dashboard: React.FC = () => {
           <div className="h-full">{renderContent()}</div>
 
           {/* Footer */}
-          <div className="flex justify-center items-center text-xs text-joyxora-green hidden sm:hidden md:block lg:block fixed left-0 bottom-0 right-0">
-            <div className="flex gap-1 md:gap-4 lg:gap-5">
+          <div className="flex justify-center items-center text-xs text-joyxora-green hidden sm:hidden md:block lg:block fixed bg-joyxora-dark w-ful h-1 left-0 bottom-0 right-0">
+            <div className="flex gap-1 sm:gap-3 md:gap-4 lg:gap-5">
               <span className="text-joyxora-green">⚠ STEALTH MODE</span>
               <span className="text-joyxora-green">✓ VPN TUNNELING: OFF</span>
               <span className="text-joyxora-green">✓ USER SHADOW</span>
             </div>
-            <div className="flex gap-2 md:gap-4 lg:gap-5 items-center">
+            <div className="flex gap-2 sm:gap-3 md:gap-4 lg:gap-5 items-center">
               <button
                 onClick={handleLogout}
                 className="text-red-400 hover:text-red-300 transition-colors text-center"
@@ -500,9 +500,9 @@ const ChatbotView = () => (
       <input
         type="text"
         placeholder="Enter command or query..."
-        className="flex-1 px-2 py-1 sm:px-4 sm:py-3  md:px-4 md:py-3 lg:px-4 lg:py-3bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green placeholder-joyxora-green"
+        className="flex-1 px-2 py-1 sm:px-4 sm:py-3  md:px-4 md:py-3 lg:px-4 lg:py-3 bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green placeholder-joyxora-green"
       />
-      <button className="px-1 py-1 sm:px-6 sm:py-3  md:px-6 md:py-3 lg:px-7 lg:py-4 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
+      <button className="px-0 py-0 sm:px-6 sm:py-3  md:px-6 md:py-3 lg:px-7 lg:py-4 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
         SEND
       </button>
     </div>
@@ -530,7 +530,7 @@ const TerminalView = () => (
             <span className="text-joyxora-green">root@joyxora:~$</span>
             <span className="text-joyxora-green ml-2">help</span>
           </div>
-          <div className="hidden sm:block md:block lg:block ml-4 text-joyxora-green space-y-1">
+          <div className="ml-4 text-joyxora-green space-y-1">
             <p>Available commands:</p>
             <p className="ml-4">• encrypt [file] - Encrypt specified file</p>
             <p className="ml-4">• decrypt [file] - Decrypt specified file</p>
@@ -561,7 +561,7 @@ const Vault = () => (
       <Shield className="w-16 h-16 mx-auto text-joyxora-green mb-4" />
       <p className="text-lg font-bold mb-2">VAULT IS EMPTY</p>
       <p className="text-xs text-joyxora-green">No applications are currently protected</p>
-      <button className="mt-6 px-6 py-3 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
+      <button className="mt-6 px-6 py-6 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
         ADD APPLICATIONS
       </button>
     </div>
