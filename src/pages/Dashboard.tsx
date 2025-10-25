@@ -401,16 +401,16 @@ const Dashboard: React.FC = () => {
           <div className="h-full">{renderContent()}</div>
 
           {/* Footer */}
-          <div className="block sm:hidden md:block lg:block fixed bottom-0 margin-auto flex justify-center items-center text-xs text-joyxora-green">
+          <div className=" flex justify-center items-center text-xs text-joyxora-green block sm:hidden md:block lg:block fixed bottom-0 margin-auto">
             <div className="flex gap-1 md:gap-4 lg:gap-5">
-              <span className="text-joyxora-green">⚠ STEALTH MODE</span>
-              <span className="text-joyxora-green">✓ VPN TUNNELING: OFF</span>
-              <span className="text-joyxora-green">✓ USER SHADOW</span>
+              <span className="text-joyxora-green text-center">⚠ STEALTH MODE</span>
+              <span className="text-joyxora-green text-center">✓ VPN TUNNELING: OFF</span>
+              <span className="text-joyxora-green text-center">✓ USER SHADOW</span>
             </div>
             <div className="flex gap-2 md:gap-4 lg:gap-5 items-center">
               <button
                 onClick={handleLogout}
-                className="text-red-400 hover:text-red-300 transition-colors"
+                className="text-red-400 hover:text-red-300 transition-colors text-center"
               >
                 🔒 LOGOUT
               </button>
