@@ -376,7 +376,7 @@ const FileEncryption = () => {
                 className={`p-3 sm:p-4 rounded-sm border-2 transition-all text-left ${
                   keyDerivation === 'PBKDF2'
                     ? 'border-joyxora-green bg-joyxora-dark'
-                    : 'border-joyxora-green hover:border-joyxora-darks'
+                    : 'border-joyxora-darks hover:border-joyxora-green'
                 }`}
               >
                 <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-joyxora-green mb-2" />
@@ -389,7 +389,7 @@ const FileEncryption = () => {
                 className={`p-3 sm:p-4 rounded-sm border-2 transition-all text-left ${
                   keyDerivation === 'Argon2id'
                     ? 'border-joyxora-green bg-joyxora-dark'
-                    : 'border-joyxora-green hover:border-joyxora-darks'
+                    : 'border-joyxora-darks hover:border-joyxora-green'
                 }`}
               >
                 <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-joyxora-green mb-2" />
@@ -402,7 +402,7 @@ const FileEncryption = () => {
                 className={`p-3 sm:p-4 rounded-sm border-2 transition-all text-left ${
                   keyDerivation === 'scrypt'
                     ? 'border-joyxora-green bg-joyxora-dark'
-                    : 'border-joyxora-green hover:border-joyxora-darks'
+                    : 'border-joyxora-darks hover:border-joyxora-green'
                 }`}
               >
                 <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-joyxora-green mb-2" />
@@ -418,7 +418,7 @@ const FileEncryption = () => {
                 className={`p-3 sm:p-4 rounded-sm border-2 transition-all text-left ${
                   keyDerivation === 'random'
                     ? 'border-joyxora-green bg-joyxora-dark'
-                    : 'border-joyxora-green hover:border-joyxora-darks'
+                    : 'border-joyxora-darks hover:border-joyxora-green'
                 }`}
               >
                 <Key className="w-6 h-6 sm:w-8 sm:h-8 text-joyxora-green mb-2" />
