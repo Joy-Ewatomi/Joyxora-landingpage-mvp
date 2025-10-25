@@ -401,11 +401,11 @@ const Dashboard: React.FC = () => {
           <div className="h-full">{renderContent()}</div>
 
           {/* Footer */}
-          <div className=" flex justify-center items-center text-xs text-joyxora-green block sm:hidden md:block lg:block fixed bottom-0 margin-auto">
+          <div className="flex justify-center items-center text-xs text-joyxora-green hidden sm:block md:block lg:block fixed bottom-0 right-0">
             <div className="flex gap-1 md:gap-4 lg:gap-5">
-              <span className="text-joyxora-green text-center">⚠ STEALTH MODE</span>
-              <span className="text-joyxora-green text-center">✓ VPN TUNNELING: OFF</span>
-              <span className="text-joyxora-green text-center">✓ USER SHADOW</span>
+              <span className="text-joyxora-green">⚠ STEALTH MODE</span>
+              <span className="text-joyxora-green">✓ VPN TUNNELING: OFF</span>
+              <span className="text-joyxora-green">✓ USER SHADOW</span>
             </div>
             <div className="flex gap-2 md:gap-4 lg:gap-5 items-center">
               <button
