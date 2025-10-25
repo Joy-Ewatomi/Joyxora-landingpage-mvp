@@ -401,7 +401,7 @@ const Dashboard: React.FC = () => {
           <div className="h-full">{renderContent()}</div>
 
           {/* Footer */}
-          <div className="flex justify-center items-center text-xs text-joyxora-green hidden sm:block md:block lg:block fixed bottom-0 right-0">
+          <div className="flex justify-center items-center text-xs text-joyxora-green hidden sm:block md:block lg:block fixed left-0 bottom-0 right-0">
             <div className="flex gap-1 md:gap-4 lg:gap-5">
               <span className="text-joyxora-green">⚠ STEALTH MODE</span>
               <span className="text-joyxora-green">✓ VPN TUNNELING: OFF</span>
@@ -414,7 +414,7 @@ const Dashboard: React.FC = () => {
               >
                 🔒 LOGOUT
               </button>
-              <span className="hidden md:block lg:block">
+              <span className="hidden sm:hidden  md:block lg:block">
                 {currentTime.toLocaleTimeString('en-US', {
                   hour: '2-digit',
                   minute: '2-digit',
@@ -500,9 +500,9 @@ const ChatbotView = () => (
       <input
         type="text"
         placeholder="Enter command or query..."
-        className="flex-1 px-4 py-3 bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green placeholder-joyxora-green"
+        className="flex-1 px-2 py-1 sm:px-4 sm:py-3  md:px-4 md:py-3 lg:px-4 lg:py-3bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green placeholder-joyxora-green"
       />
-      <button className="px-3 py-1 md:px-6 md:py-3 lg:px-7 lg:py-4 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
+      <button className="px-2 py-1 sm:px-6 sm:py-3  md:px-6 md:py-3 lg:px-7 lg:py-4 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
         SEND
       </button>
     </div>
