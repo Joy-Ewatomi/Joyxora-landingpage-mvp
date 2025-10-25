@@ -20,7 +20,7 @@ const FileEncryption = () => {
   const [autoMalwareScan, setAutoMalwareScan] = useState(true);
   const [secureDelete, setSecureDelete] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [mode, setMode] = useState<'encrypt' | 'decrypt'>('encrypt');
+  const [mode] = useState<'encrypt' | 'decrypt'>('encrypt');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const algorithms = [
