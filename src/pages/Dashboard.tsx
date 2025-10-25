@@ -401,7 +401,7 @@ const Dashboard: React.FC = () => {
           <div className="h-full">{renderContent()}</div>
 
           {/* Footer */}
-          <div className="flex justify-center items-center text-xs text-joyxora-green hidden sm:hidden md:block lg:block fixed bg-joyxora-dark w-full h-10 left-0 bottom-0 right-0">
+          <div className="flex text-xs text-joyxora-green hidden sm:hidden md:block lg:block fixed bg-joyxora-dark w-full h-10 left-0 bottom-0 right-0">
             <div className="flex gap-1 sm:gap-3 md:gap-4 lg:gap-5">
               <span className="text-joyxora-green">⚠ STEALTH MODE</span>
               <span className="text-joyxora-green">✓ VPN TUNNELING: OFF</span>
