@@ -16,8 +16,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import FileEncryption from "../components/FileEncryption.tsx";
+import FileDecryption from "../components/FileDecryption.tsx";
 
-type FeatureType = 'files' | 'apps' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
+type FeatureType = 'files' | 'filesde' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -121,8 +122,8 @@ const Dashboard: React.FC = () => {
     switch (activeFeature) {
       case 'files':
         return <FileEncryption />;
-      case 'apps':
-        return <AppEncryption />;
+      case 'filesde':
+        return <FileDecryption />;
       case 'messages':
         return <Messaging />;
       case 'chatbot':
@@ -433,23 +434,6 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
-
-const AppEncryption = () => (
-  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
-    <div className="flex items-center gap-3 mb-4">
-      <Lock className="w-6 h-6 text-joyxora-green" />
-      <h2 className="text-xl font-bold">FILE DECRYPTION MATRIX</h2>
-    </div>
-    <p className="text-xs text-joyxora-green mb-6">
-      &gt; SELECT ENCRYPTED FILES TO DECRYPT
-    </p>
-    <div className="text-center py-16 border-2 border-dashed border-joyxora-green rounded-lg">
-      <Lock className="w-16 h-16 mx-auto text-joyxora-green mb-4" />
-      <p className="text-lg font-bold mb-2">NO ENCRYPTED FILES SELECTED</p>
-      <p className="text-xs text-joyxora-green">Upload encrypted files to decrypt them</p>
-    </div>
-  </div>
-);
 
 const Messaging = () => (
   <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
