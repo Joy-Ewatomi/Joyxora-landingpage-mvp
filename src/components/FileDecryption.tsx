@@ -12,7 +12,7 @@ interface FileData {
   file: File;
 }
 
-const FileEncryption = () => {
+const FileDecryption= () => {
   const [files, setFiles] = useState<FileData[]>([]);
   const [algorithm, setAlgorithm] = useState<Algorithm>('AES-256-GCM');
   const [keyDerivation, setKeyDerivation] = useState<KeyDerivation>('PBKDF2');
@@ -107,7 +107,7 @@ const FileEncryption = () => {
     const keyBytes = new Uint8Array(
       keyHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
     );
-    
+
     return crypto.subtle.importKey(
       'raw',
       keyBytes,
@@ -119,7 +119,7 @@ const FileEncryption = () => {
 
   const encryptFile = async (fileData: FileData, key: CryptoKey, salt: Uint8Array) => {
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    
+
     const encryptedData = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv: iv },
       key,
@@ -181,7 +181,7 @@ const FileEncryption = () => {
     try {
       for (const file of files) {
         const salt = crypto.getRandomValues(new Uint8Array(16));
-        
+
         let key: CryptoKey;
         if (keyDerivation === 'random') {
           key = await importRandomKey(randomKey);
@@ -232,9 +232,9 @@ const FileEncryption = () => {
         const blob = new Blob([file.data]);
         const text = await blob.text();
         const metadata = JSON.parse(text);
-        
+
         const salt = new Uint8Array(metadata.salt);
-        
+
         let key: CryptoKey;
         if (metadata.keyDerivation === 'random') {
           key = await importRandomKey(randomKey);
@@ -300,9 +300,9 @@ const FileEncryption = () => {
         <div className="bg-joyxora-dark border-2 border-joyxora-green rounded-sm p-3 sm:p-6">
           <div className="flex items-center gap-2 mb-4 sm:mb-6">
             <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
-            <h2 className="text-lg sm:text-xl font-bold tracking-wide">FILE ENCRYPTION MATRIX</h2>
+            <h2 className="text-lg sm:text-xl font-bold tracking-wide">FILE DECRYPTION MATRIX</h2>
           </div>
-          
+
           <p className="text-xs sm:text-sm text-joyxora-green mb-4 sm:mb-6 break-all">
             &gt; DRAG_FILES_OR_CLICK_TO_SELECT_TARGET • AUTO_MALWARE_SCAN_ENABLED
           </p>
@@ -315,7 +315,7 @@ const FileEncryption = () => {
             onChange={handleFileSelect}
             className="hidden"
           />
-          
+
           <div
             onClick={() => fileInputRef.current?.click()}
             className="border-2 border-dashed border-joyxora-green rounded-sm p-6 sm:p-12 text-center cursor-pointer hover:border-joyxora-green transition-all mb-4 sm:mb-6 relative"
@@ -327,7 +327,7 @@ const FileEncryption = () => {
             </p>
             <div className="flex items-center justify-center gap-2 mt-4 text-joyxora-green">
               <div className="w-2 h-2 border-2 border-joyxora-green rounded-full"></div>
-              <span className="text-xs">AUTOMATIC MALWARE SCANNING ACTIVE</span>
+              <span className="text-xs">AUTOMATIC MALWARE SCANNING ACTIVE(NOT YET AVAILIABLE)</span>
             </div>
             {files.length > 0 && (
               <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-joyxora-green text-joyxora-dark px-2 sm:px-3 py-1 text-xs font-bold">
@@ -354,7 +354,7 @@ const FileEncryption = () => {
             <select
               value={algorithm}
               onChange={(e) => setAlgorithm(e.target.value as Algorithm)}
-              className="w-full bg-black border border-joyxora-green text-joyxora-green px-3 sm:px-4 py-2 sm:py-3 rounded-sm focus:outline-none focus:border-joyxora-green text-xs sm:text-sm"
+              className="w-full bg-joyxora-dark border border-joyxora-green text-joyxora-green px-3 sm:px-4 py-2 sm:py-3 rounded-sm focus:outline-none focus:border-joyxora-green text-xs sm:text-sm"
             >
               {algorithms.map(algo => (
                 <option key={algo.value} value={algo.value}>
@@ -449,7 +449,7 @@ const FileEncryption = () => {
                 <div className="flex flex-col sm:flex-row gap-2">
                   <button
                     onClick={generateRandomKey}
-                    className="flex-1 px-3 sm:px-4 py-2 bg-joyxora-dark border border-joyxora-green text-joyxora-green rounded-sm hover:bg-joyxora-darks transition-all text-xs sm:text-sm font-bold flex items-center justify-center gap-2"
+                    className="flex-1 px-3 sm:px-4 py-2 bg-joyxora-dark border border-joyxora-green text-joyxora-green rounded-sm hover:bg-joyxora-dark transition-all text-xs sm:text-sm font-bold flex items-center justify-center gap-2"
                   >
                     <Key className="w-4 h-4" />
                     GENERATE KEY
@@ -475,7 +475,7 @@ const FileEncryption = () => {
           {/* Options */}
           <div className="mb-4 sm:mb-6 space-y-2 sm:space-y-3">
             <label className="block text-xs sm:text-sm font-bold mb-2 sm:mb-3 tracking-wide">OPTIONS</label>
-            
+
             <label className="flex items-center gap-3 cursor-pointer group">
               <div className="relative">
                 <input
@@ -608,7 +608,7 @@ const FileEncryption = () => {
             <div className="mt-4 flex items-start gap-2 p-2 sm:p-3 bg-joyxora-darks border border-joyxora-darks rounded-sm text-joyxora-green text-xs">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>
-                {secureDelete 
+                {secureDelete
                   ? 'Original files will be removed after processing.'
                   : 'Original files will remain intact. Enable "Secure delete" to remove them after processing.'}
               </span>
@@ -634,4 +634,4 @@ const FileEncryption = () => {
   );
 };
 
-export default FileEncryption;
+export default FileDecryption;
