@@ -491,7 +491,7 @@ const FileDecryption = () => {
             <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 flex items-center justify-center text-black font-bold text-sm sm:text-base">
               C
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-wider">CYBERVAULT</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-wider">JOYXORA</h1>
           </div>
           <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm">
             <button
@@ -525,7 +525,7 @@ const FileDecryption = () => {
               <div className="flex items-center justify-between p-4 sm:p-6 border-b border-green-500/30">
                 <div className="flex items-center gap-2">
                   <Archive className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <h2 className="text-lg sm:text-xl font-bold tracking-wide">ENCRYPTION VAULT</h2>
+                  <h2 className="text-lg sm:text-xl font-bold tracking-wide">DECRYPTION VAULT</h2>
                 </div>
                 <button
                   onClick={() => setShowVault(false)}
@@ -614,7 +614,7 @@ const FileDecryption = () => {
         <div className="bg-[#0f0f0f] border-2 border-green-500/30 rounded-sm p-3 sm:p-6">
           <div className="flex items-center gap-2 mb-4 sm:mb-6">
             <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
-            <h2 className="text-lg sm:text-xl font-bold tracking-wide">FILE ENCRYPTION MATRIX</h2>
+            <h2 className="text-lg sm:text-xl font-bold tracking-wide">FILE DECRYPTION MATRIX</h2>
           </div>
 
           <p className="text-xs sm:text-sm text-green-400/70 mb-4 sm:mb-6 break-all">
@@ -641,7 +641,7 @@ const FileDecryption = () => {
             </p>
             <div className="flex items-center justify-center gap-2 mt-4 text-green-400">
               <div className="w-2 h-2 border-2 border-green-400 rounded-full"></div>
-              <span className="text-xs">AUTOMATIC MALWARE SCANNING ACTIVE</span>
+              <span className="text-xs">AUTOMATIC MALWARE SCANNING ACTIVE(NOT AVAILIABLE YET)</span>
             </div>
             {files.length > 0 && (
               <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-green-500 text-black px-2 sm:px-3 py-1 text-xs font-bold">
