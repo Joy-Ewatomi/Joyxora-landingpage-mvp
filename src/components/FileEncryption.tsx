@@ -26,7 +26,6 @@ const FileEncryption = () => {
   const [processedFiles, setProcessedFiles] = useState<{blob: Blob, name: string}[]>([]);
   const [vaultEntries, setVaultEntries] = useState<any[]>([]);
   const [showVault, setShowVault] = useState(false);
-  const [detectedMode, setDetectedMode] = useState<'encrypt' | 'decrypt'>('encrypt');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const algorithms = [
@@ -110,7 +109,6 @@ const FileEncryption = () => {
 
     setFiles(fileDataArray);
     setProcessedFiles([]);
-    setDetectedMode(isEncryptedFile ? 'decrypt' : 'encrypt');
     setMode(isEncryptedFile ? 'decrypt' : 'encrypt');
   };
 
