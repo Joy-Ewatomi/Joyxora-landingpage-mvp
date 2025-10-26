@@ -75,7 +75,7 @@ const Dashboard: React.FC = () => {
       ],
     },
     {
-      id: 'apps',
+      id: 'filesde',
       label: 'FILE DECRYPT',
       sublabel: 'Unlock your data',
       icon: Lock,
