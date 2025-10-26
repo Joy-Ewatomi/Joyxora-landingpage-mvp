@@ -16,14 +16,13 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import FileEncryption from "../components/FileEncryption.tsx";
-import FileDecryption from "../components/FileDecryption.tsx";
 
-type FeatureType = 'files' | 'filesde' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
+type FeatureType = 'files/folder/apps' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [activeFeature, setActiveFeature] = useState<FeatureType>('files');
+  const [activeFeature, setActiveFeature] = useState<FeatureType>('files/folder/apps');
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // mobile drawer state
@@ -120,10 +119,8 @@ const Dashboard: React.FC = () => {
 
   const renderContent = () => {
     switch (activeFeature) {
-      case 'files':
+      case 'files/folder/apps':
         return <FileEncryption />;
-      case 'filesde':
-        return <FileDecryption />;
       case 'messages':
         return <Messaging />;
       case 'chatbot':
