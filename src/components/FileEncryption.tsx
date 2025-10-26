@@ -447,11 +447,16 @@ const FileEncryption = () => {
           fileInputRef.current.value = '';
         }
       }
-    } catch (error) {
-      console.error('Decryption failed:', error);
-      alert('Decryption failed. Check your passphrase/key and encryption settings.');
-    }
-    setProcessing(false);
+  } catch (error) {
+    console.error('Decryption failed:', error);
+    alert('Decryption failed. Check your passphrase/key and encryption settings.');
+    return (
+        <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+            Decryption failed. Check your passphrase/key and encryption settings.
+        </div>
+    );
+}
+ setProcessing(false);
   };
 
   const downloadFile = (blob: Blob, filename: string) => {
