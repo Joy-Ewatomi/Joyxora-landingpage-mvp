@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
     actions?: { id: string; label: string; onClick?: () => void }[];
   }[] = [
     {
-      id: 'files',
+      id: 'files/folder/apps',
       label: 'FILE ENCRYPT',
       sublabel: 'Secure your files',
       icon: Lock,
@@ -72,13 +72,6 @@ const Dashboard: React.FC = () => {
         { id: 'open', label: 'Open' },
         { id: 'upload', label: 'Upload' },
       ],
-    },
-    {
-      id: 'filesde',
-      label: 'FILE DECRYPT',
-      sublabel: 'Unlock your data',
-      icon: Lock,
-      actions: [{ id: 'open', label: 'Open' }],
     },
     {
       id: 'messages',
