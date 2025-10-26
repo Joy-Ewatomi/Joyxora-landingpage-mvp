@@ -29,6 +29,9 @@ const FileEncryption = () => {
   const [detectedMode, setDetectedMode] = useState<'encrypt' | 'decrypt' | null>(null);
   const [fileMetadata, setFileMetadata] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [encryptionProgress, setEncryptionProgress] = useState<number>(0);
+  const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
+  const [isLargeFile, setIsLargeFile] = useState<boolean>(false);
 
   const algorithms = [
     { value: 'AES-256-GCM', label: 'AES-256-GCM (Recommended)', desc: 'NIST approved, authenticated encryption' },
@@ -191,24 +194,40 @@ const FileEncryption = () => {
     );
   };
 
-  const compressData = async (data: ArrayBuffer): Promise<ArrayBuffer> => {
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(new Uint8Array(data));
-        controller.close();
-      }
-    });
-
-    const compressedStream = stream.pipeThrough(new CompressionStream('gzip'));
+  const compressDataChunked = async (data: ArrayBuffer): Promise<ArrayBuffer> => {
+    const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
     const chunks: Uint8Array[] = [];
-    const reader = compressedStream.getReader();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
+    
+    const compressionStream = new CompressionStream('gzip');
+    const writer = compressionStream.writable.getWriter();
+    const reader = compressionStream.readable.getReader();
+    
+    // Start reading compressed data
+    const readPromise = (async () => {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+      }
+    })();
+    
+    // Write data in chunks
+    const totalChunks = Math.ceil(data.byteLength / CHUNK_SIZE);
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, data.byteLength);
+      const chunk = new Uint8Array(data.slice(start, end));
+      
+      await writer.write(chunk);
+      
+      // Let browser breathe
+      await new Promise(resolve => setTimeout(resolve, 0));
     }
-
+    
+    await writer.close();
+    await readPromise;
+    
+    // Combine compressed chunks
     const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
     const compressed = new Uint8Array(totalLength);
     let offset = 0;
@@ -216,28 +235,47 @@ const FileEncryption = () => {
       compressed.set(chunk, offset);
       offset += chunk.length;
     }
-
+    
     return compressed.buffer;
   };
 
-  const decompressData = async (data: ArrayBuffer): Promise<ArrayBuffer> => {
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(new Uint8Array(data));
-        controller.close();
-      }
-    });
-
-    const decompressedStream = stream.pipeThrough(new DecompressionStream('gzip'));
+  const decompressDataChunked = async (data: ArrayBuffer): Promise<ArrayBuffer> => {
+    const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
     const chunks: Uint8Array[] = [];
-    const reader = decompressedStream.getReader();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
+    
+    const decompressionStream = new DecompressionStream('gzip');
+    const writer = decompressionStream.writable.getWriter();
+    const reader = decompressionStream.readable.getReader();
+    
+    // Start reading decompressed data
+    const readPromise = (async () => {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        
+        // Let browser breathe
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+    })();
+    
+    // Write data in chunks
+    const totalChunks = Math.ceil(data.byteLength / CHUNK_SIZE);
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, data.byteLength);
+      const chunk = new Uint8Array(data.slice(start, end));
+      
+      await writer.write(chunk);
+      
+      // Let browser breathe
+      await new Promise(resolve => setTimeout(resolve, 0));
     }
-
+    
+    await writer.close();
+    await readPromise;
+    
+    // Combine decompressed chunks
     const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
     const decompressed = new Uint8Array(totalLength);
     let offset = 0;
@@ -245,16 +283,209 @@ const FileEncryption = () => {
       decompressed.set(chunk, offset);
       offset += chunk.length;
     }
-
+    
     return decompressed.buffer;
+  };
+
+  const encryptFileChunked = async (
+    fileData: FileData, 
+    key: CryptoKey, 
+    salt: Uint8Array, 
+    shouldCompress: boolean,
+    onProgress?: (progress: number) => void
+  ) => {
+    const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    
+    // Step 1: Optionally compress
+    let dataToEncrypt = fileData.data;
+    if (shouldCompress) {
+      dataToEncrypt = await compressDataChunked(fileData.data);
+    }
+    
+    // Step 2: Encrypt in chunks
+    const totalChunks = Math.ceil(dataToEncrypt.byteLength / CHUNK_SIZE);
+    const encryptedChunks: ArrayBuffer[] = [];
+    
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, dataToEncrypt.byteLength);
+      const chunk = dataToEncrypt.slice(start, end);
+      
+      // Encrypt this chunk
+      const encryptedChunk = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        chunk
+      );
+      
+      encryptedChunks.push(encryptedChunk);
+      
+      // Update progress
+      if (onProgress) {
+        const progress = ((i + 1) / totalChunks) * 100;
+        onProgress(progress);
+      }
+      
+      // CRITICAL: Let browser breathe
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    
+    // Step 3: Combine chunks
+    const totalLength = encryptedChunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
+    const combinedArray = new Uint8Array(totalLength);
+    let offset = 0;
+    
+    for (const chunk of encryptedChunks) {
+      combinedArray.set(new Uint8Array(chunk), offset);
+      offset += chunk.byteLength;
+    }
+    
+    // Step 4: Create metadata (same as before)
+    const metadata = {
+      version: 1,
+      algorithm: algorithm,
+      keyDerivation: keyDerivation,
+      fileName: fileData.name,
+      fileType: fileData.type,
+      originalSize: fileData.size,
+      compressed: shouldCompress,
+      timestamp: new Date().toISOString(),
+      salt: Array.from(salt),
+      iv: Array.from(iv),
+      data: Array.from(combinedArray)
+    };
+    
+    return new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+  };
+
+  const decryptFileChunked = async (
+    encryptedBlob: Blob, 
+    key: CryptoKey, 
+    isJoyXoraFile: boolean = true,
+    onProgress?: (progress: number) => void
+  ) => {
+    if (isJoyXoraFile) {
+      // Step 1: Parse metadata
+      const text = await encryptedBlob.text();
+      const metadata = JSON.parse(text);
+
+      const iv = new Uint8Array(metadata.iv);
+      const encryptedData = new Uint8Array(metadata.data);
+
+      // Step 2: Decrypt in chunks
+      const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+      const totalChunks = Math.ceil(encryptedData.length / CHUNK_SIZE);
+      const decryptedChunks: ArrayBuffer[] = [];
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, encryptedData.length);
+        const chunk = encryptedData.slice(start, end);
+
+        // Decrypt this chunk
+        const decryptedChunk = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: iv },
+          key,
+          chunk
+        );
+
+        decryptedChunks.push(decryptedChunk);
+
+        // Update progress
+        if (onProgress) {
+          const progress = ((i + 1) / totalChunks) * 100;
+          onProgress(progress);
+        }
+
+        // CRITICAL: Let browser breathe
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+
+      // Step 3: Combine chunks
+      const totalLength = decryptedChunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
+      const combinedArray = new Uint8Array(totalLength);
+      let offset = 0;
+
+      for (const chunk of decryptedChunks) {
+        combinedArray.set(new Uint8Array(chunk), offset);
+        offset += chunk.byteLength;
+      }
+
+      let finalData = combinedArray.buffer;
+
+      // Step 4: Decompress if needed
+      if (metadata.compressed) {
+        finalData = await decompressDataChunked(finalData);
+      }
+
+      return {
+        data: finalData,
+        fileName: metadata.fileName,
+        fileType: metadata.fileType
+      };
+
+    } else {
+      // Non-JoyXora file (legacy support)
+      const encryptedArray = new Uint8Array(await encryptedBlob.arrayBuffer());
+
+      if (encryptedArray.length < 12) {
+        throw new Error('Invalid encrypted file format');
+      }
+
+      const iv = encryptedArray.slice(0, 12);
+      const encryptedData = encryptedArray.slice(12);
+
+      // Decrypt in chunks
+      const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+      const totalChunks = Math.ceil(encryptedData.length / CHUNK_SIZE);
+      const decryptedChunks: ArrayBuffer[] = [];
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, encryptedData.length);
+        const chunk = encryptedData.slice(start, end);
+
+        const decryptedChunk = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: iv },
+          key,
+          chunk
+        );
+
+        decryptedChunks.push(decryptedChunk);
+
+        if (onProgress) {
+          const progress = ((i + 1) / totalChunks) * 100;
+          onProgress(progress);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+
+      // Combine chunks
+      const totalLength = decryptedChunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
+      const combinedArray = new Uint8Array(totalLength);
+      let offset = 0;
+
+      for (const chunk of decryptedChunks) {
+        combinedArray.set(new Uint8Array(chunk), offset);
+        offset += chunk.byteLength;
+      }
+
+      return {
+        data: combinedArray.buffer,
+        fileName: 'decrypted_file',
+        fileType: 'application/octet-stream'
+      };
+    }
   };
 
   const encryptFile = async (fileData: FileData, key: CryptoKey, salt: Uint8Array, shouldCompress: boolean) => {
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    
+
     let dataToEncrypt = fileData.data;
     if (shouldCompress) {
-      dataToEncrypt = await compressData(fileData.data);
+      dataToEncrypt = await compressDataChunked(fileData.data);
     }
 
     const encryptedData = await crypto.subtle.encrypt(
@@ -295,7 +526,7 @@ const FileEncryption = () => {
       );
 
       if (metadata.compressed) {
-        decryptedData = await decompressData(decryptedData);
+        decryptedData = await decompressDataChunked(decryptedData);
       }
 
       return {
@@ -305,7 +536,7 @@ const FileEncryption = () => {
       };
     } else {
       const encryptedArray = new Uint8Array(await encryptedBlob.arrayBuffer());
-      
+
       if (encryptedArray.length < 12) {
         throw new Error('Invalid encrypted file format');
       }
@@ -343,9 +574,17 @@ const FileEncryption = () => {
     const encrypted: {blob: Blob, name: string}[] = [];
 
     try {
-      for (const file of files) {
-        const salt = crypto.getRandomValues(new Uint8Array(16));
+      for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+        const file = files[fileIndex];
+        setCurrentFileIndex(fileIndex + 1);
         
+        // Check if large file
+        const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024; // 10MB
+        const isLarge = file.size > LARGE_FILE_THRESHOLD;
+        setIsLargeFile(isLarge);
+        
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+
         let key: CryptoKey;
         if (keyDerivation === 'random') {
           key = await importRandomKey(randomKey);
@@ -353,7 +592,22 @@ const FileEncryption = () => {
           key = await deriveKeyFromPassword(passphrase, salt, keyDerivation);
         }
 
-        const encryptedBlob = await encryptFile(file, key, salt, compressBeforeEncrypt);
+        let encryptedBlob: Blob;
+        
+        // Use chunked encryption for large files
+        if (isLarge) {
+          encryptedBlob = await encryptFileChunked(
+            file, 
+            key, 
+            salt, 
+            compressBeforeEncrypt,
+            (progress) => setEncryptionProgress(progress)
+          );
+        } else {
+          // Use original method for small files (faster)
+          encryptedBlob = await encryptFile(file, key, salt, compressBeforeEncrypt);
+        }
+        
         encrypted.push({
           blob: encryptedBlob,
           name: `${file.name}.encrypted`
@@ -361,9 +615,14 @@ const FileEncryption = () => {
 
         const keyInfo = keyDerivation === 'random' ? randomKey : 'password-protected';
         saveToVault(file, keyInfo);
+        
+        // Reset progress for next file
+        setEncryptionProgress(0);
       }
 
       setProcessedFiles(encrypted);
+      setIsLargeFile(false);
+      setCurrentFileIndex(0);
 
       if (secureDelete) {
         setFiles([]);
@@ -394,33 +653,47 @@ const FileEncryption = () => {
     const decrypted: {blob: Blob, name: string}[] = [];
 
     try {
-      for (const file of files) {
-        const blob = new Blob([file.data]);
+      for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+        const file = files[fileIndex];
+        setCurrentFileIndex(fileIndex + 1);
         
+        const blob = new Blob([file.data]);
+
+        // Detect if JoyXora file
         let isJoyXoraFile = false;
+        let metadata: any = null;
+        
         try {
           const text = await blob.text();
           const parsed = JSON.parse(text);
           isJoyXoraFile = parsed.version && parsed.algorithm;
+          if (isJoyXoraFile) {
+            metadata = parsed;
+          }
         } catch {
           isJoyXoraFile = false;
         }
 
+        // Check if large file (encrypted data size)
+        const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024; // 10MB
+        const isLarge = file.size > LARGE_FILE_THRESHOLD;
+        setIsLargeFile(isLarge);
+
+        // Derive key
         let key: CryptoKey;
-        
-        if (isJoyXoraFile) {
-          const text = await blob.text();
-          const metadata = JSON.parse(text);
+
+        if (isJoyXoraFile && metadata) {
           const salt = new Uint8Array(metadata.salt);
-          
+
           if (metadata.keyDerivation === 'random') {
             key = await importRandomKey(randomKey);
           } else {
             key = await deriveKeyFromPassword(passphrase, salt, metadata.keyDerivation);
           }
         } else {
+          // Non-JoyXora file
           const salt = crypto.getRandomValues(new Uint8Array(16));
-          
+
           if (keyDerivation === 'random') {
             key = await importRandomKey(randomKey);
           } else {
@@ -428,18 +701,35 @@ const FileEncryption = () => {
           }
         }
 
-        const decryptedData = await decryptFile(blob, key, isJoyXoraFile);
+        // Decrypt (chunked for large files)
+        let decryptedData;
+        
+        if (isLarge) {
+          decryptedData = await decryptFileChunked(
+            blob, 
+            key, 
+            isJoyXoraFile,
+            (progress) => setEncryptionProgress(progress)
+          );
+        } else {
+          decryptedData = await decryptFile(blob, key, isJoyXoraFile);
+        }
+
         const decryptedBlob = new Blob([decryptedData.data], { type: decryptedData.fileType });
-        
         const filename = isJoyXoraFile ? decryptedData.fileName : `decrypted_${file.name}`;
-        
+
         decrypted.push({
           blob: decryptedBlob,
           name: filename
         });
+        
+        // Reset progress for next file
+        setEncryptionProgress(0);
       }
 
       setProcessedFiles(decrypted);
+      setIsLargeFile(false);
+      setCurrentFileIndex(0);
 
       if (secureDelete) {
         setFiles([]);
@@ -447,16 +737,13 @@ const FileEncryption = () => {
           fileInputRef.current.value = '';
         }
       }
-  } catch (error) {
-    console.error('Decryption failed:', error);
-    alert('Decryption failed. Check your passphrase/key and encryption settings.');
-    return (
-        <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-            Decryption failed. Check your passphrase/key and encryption settings.
-        </div>
-    );
-}
- setProcessing(false);
+
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      alert('Decryption failed. Check your passphrase/key and encryption settings.');
+    }
+    
+    setProcessing(false);
   };
 
   const downloadFile = (blob: Blob, filename: string) => {
@@ -982,6 +1269,35 @@ const FileEncryption = () => {
           </div>
         )}
       </div>
+
+      {/* Progress Indicator - Fixed Position */}
+      {processing && isLargeFile && (
+        <div className="fixed bottom-4 right-4 bg-gray-900 border-2 border-joyxora-green rounded-lg p-4 shadow-xl z-50 max-w-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <Loader className="w-5 h-5 text-joyxora-green animate-spin" />
+            <div className="flex-1">
+              <p className="text-joyxora-green font-semibold">
+                {mode === 'encrypt' ? 'Encrypting' : 'Decrypting'} Large File
+              </p>
+              <p className="text-green-400/60 text-sm">
+                File {currentFileIndex} of {files.length}
+              </p>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div
+              className="absolute top-0 left-0 h-full bg-joyxora-green transition-all duration-300"
+              style={{ width: `${encryptionProgress}%` }}
+            />
+          </div>
+
+          <p className="text-joyxora-green text-sm mt-2 text-center font-mono">
+            {Math.round(encryptionProgress)}%
+          </p>
+        </div>
+      )}
     </div>
   );
 };
