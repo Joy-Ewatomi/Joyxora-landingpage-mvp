@@ -83,6 +83,26 @@ const FileEncryption = () => {
   const detectFileMode = async (file: File) => {
     try {
       const data = await file.arrayBuffer();
+      const uint8 = new Uint8Array(data);
+      
+      // Check if it's binary format (has metadata length header)
+      const possibleLength = new Uint32Array(uint8.slice(0, 4).buffer)[0];
+      
+      if (possibleLength > 0 && possibleLength < 10000) {
+        // Binary format - read metadata
+        const metadataBytes = uint8.slice(4, 4 + possibleLength);
+        const metadataJson = new TextDecoder().decode(metadataBytes);
+        const parsed = JSON.parse(metadataJson);
+        
+        setDetectedMode('decrypt');
+        setFileMetadata(parsed);
+        setAlgorithm(parsed.algorithm);
+        setKeyDerivation(parsed.keyDerivation);
+        setCompressBeforeEncrypt(parsed.compressed || false);
+        return 'decrypt';
+      }
+      
+      // Try legacy JSON format
       const blob = new Blob([data]);
       const text = await blob.text();
       const parsed = JSON.parse(text);
@@ -281,7 +301,7 @@ const FileEncryption = () => {
   ) => {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     
-    // Step 1: Compress if needed (chunked compression prevents freeze)
+    // Step 1: Compress if needed
     let dataToEncrypt = fileData.data;
     if (shouldCompress) {
       if (onProgress) onProgress(20);
@@ -291,7 +311,7 @@ const FileEncryption = () => {
       if (onProgress) onProgress(10);
     }
     
-    // Step 2: Encrypt entire compressed data (single IV, correct crypto)
+    // Step 2: Encrypt
     if (onProgress) onProgress(60);
     
     const encryptedData = await crypto.subtle.encrypt(
@@ -302,24 +322,42 @@ const FileEncryption = () => {
     
     if (onProgress) onProgress(90);
     
-    // Step 3: Create metadata
+    // Step 3: Create BINARY format
+    // Format: [metadata_length(4 bytes)][metadata_json][salt(16)][iv(12)][encrypted_data]
+    
     const metadata = {
-      version: 1,
+      version: 2, // Version 2 = binary format
       algorithm: algorithm,
       keyDerivation: keyDerivation,
       fileName: fileData.name,
       fileType: fileData.type,
       originalSize: fileData.size,
       compressed: shouldCompress,
-      timestamp: new Date().toISOString(),
-      salt: Array.from(salt),
-      iv: Array.from(iv),
-      data: Array.from(new Uint8Array(encryptedData))
+      timestamp: new Date().toISOString()
     };
+    
+    const metadataJson = JSON.stringify(metadata);
+    const metadataBytes = new TextEncoder().encode(metadataJson);
+    const metadataLength = new Uint32Array([metadataBytes.length]);
+    
+    // Combine everything as binary
+    const totalLength = 4 + metadataBytes.length + salt.length + iv.length + encryptedData.byteLength;
+    const combined = new Uint8Array(totalLength);
+    
+    let offset = 0;
+    combined.set(new Uint8Array(metadataLength.buffer), offset);
+    offset += 4;
+    combined.set(metadataBytes, offset);
+    offset += metadataBytes.length;
+    combined.set(salt, offset);
+    offset += salt.length;
+    combined.set(iv, offset);
+    offset += iv.length;
+    combined.set(new Uint8Array(encryptedData), offset);
     
     if (onProgress) onProgress(100);
     
-    return new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+    return new Blob([combined], { type: 'application/octet-stream' });
   };
 
   const decryptFileChunked = async (
@@ -328,20 +366,41 @@ const FileEncryption = () => {
     isJoyXoraFile: boolean = true,
     onProgress?: (progress: number) => void
   ) => {
-    if (isJoyXoraFile) {
-      if (onProgress) onProgress(10);
+    if (onProgress) onProgress(10);
+    
+    const buffer = await encryptedBlob.arrayBuffer();
+    const data = new Uint8Array(buffer);
+    
+    // Check format by reading metadata length
+    const metadataLength = new Uint32Array(data.slice(0, 4).buffer)[0];
+    
+    // If metadata length is reasonable, it's binary format
+    if (metadataLength > 0 && metadataLength < 10000) {
+      // BINARY FORMAT
+      if (onProgress) onProgress(20);
       
-      const text = await encryptedBlob.text();
-      const metadata = JSON.parse(text);
+      // Read metadata
+      const metadataBytes = data.slice(4, 4 + metadataLength);
+      const metadataJson = new TextDecoder().decode(metadataBytes);
+      const metadata = JSON.parse(metadataJson);
       
       if (onProgress) onProgress(30);
-
-      const iv = new Uint8Array(metadata.iv);
-      const encryptedData = new Uint8Array(metadata.data);
-
+      
+      // Read salt (16 bytes after metadata)
+      let offset = 4 + metadataLength;
+      const salt = data.slice(offset, offset + 16);
+      offset += 16;
+      
+      // Read IV (12 bytes)
+      const iv = data.slice(offset, offset + 12);
+      offset += 12;
+      
+      // Read encrypted data (rest of file)
+      const encryptedData = data.slice(offset);
+      
       if (onProgress) onProgress(50);
       
-      // Decrypt entire data at once
+      // Decrypt
       let decryptedData = await crypto.subtle.decrypt(
         { name: 'AES-GCM', iv: iv },
         key,
@@ -350,7 +409,7 @@ const FileEncryption = () => {
 
       if (onProgress) onProgress(80);
 
-      // Decompress if needed (chunked decompression)
+      // Decompress if needed
       if (metadata.compressed) {
         decryptedData = await decompressDataChunked(decryptedData);
       }
@@ -362,30 +421,41 @@ const FileEncryption = () => {
         fileName: metadata.fileName,
         fileType: metadata.fileType
       };
-
     } else {
-      const encryptedArray = new Uint8Array(await encryptedBlob.arrayBuffer());
+      // LEGACY JSON FORMAT (backwards compatibility)
+      try {
+        const text = await encryptedBlob.text();
+        const metadata = JSON.parse(text);
+        
+        if (onProgress) onProgress(30);
 
-      if (encryptedArray.length < 12) {
+        const iv = new Uint8Array(metadata.iv);
+        const encryptedData = new Uint8Array(metadata.data);
+
+        if (onProgress) onProgress(50);
+        
+        let decryptedData = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: iv },
+          key,
+          encryptedData
+        );
+
+        if (onProgress) onProgress(80);
+
+        if (metadata.compressed) {
+          decryptedData = await decompressDataChunked(decryptedData);
+        }
+        
+        if (onProgress) onProgress(100);
+
+        return {
+          data: decryptedData,
+          fileName: metadata.fileName,
+          fileType: metadata.fileType
+        };
+      } catch (error) {
         throw new Error('Invalid encrypted file format');
       }
-
-      const iv = encryptedArray.slice(0, 12);
-      const encryptedData = encryptedArray.slice(12);
-
-      const decryptedData = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: iv },
-        key,
-        encryptedData
-      );
-
-      if (onProgress) onProgress(100);
-
-      return {
-        data: decryptedData,
-        fileName: 'decrypted_file',
-        fileType: 'application/octet-stream'
-      };
     }
   };
 
@@ -403,31 +473,60 @@ const FileEncryption = () => {
       dataToEncrypt
     );
 
+    // Binary format
     const metadata = {
-      version: 1,
+      version: 2,
       algorithm: algorithm,
       keyDerivation: keyDerivation,
       fileName: fileData.name,
       fileType: fileData.type,
       originalSize: fileData.size,
       compressed: shouldCompress,
-      timestamp: new Date().toISOString(),
-      salt: Array.from(salt),
-      iv: Array.from(iv),
-      data: Array.from(new Uint8Array(encryptedData))
+      timestamp: new Date().toISOString()
     };
+    
+    const metadataJson = JSON.stringify(metadata);
+    const metadataBytes = new TextEncoder().encode(metadataJson);
+    const metadataLength = new Uint32Array([metadataBytes.length]);
+    
+    const totalLength = 4 + metadataBytes.length + salt.length + iv.length + encryptedData.byteLength;
+    const combined = new Uint8Array(totalLength);
+    
+    let offset = 0;
+    combined.set(new Uint8Array(metadataLength.buffer), offset);
+    offset += 4;
+    combined.set(metadataBytes, offset);
+    offset += metadataBytes.length;
+    combined.set(salt, offset);
+    offset += salt.length;
+    combined.set(iv, offset);
+    offset += iv.length;
+    combined.set(new Uint8Array(encryptedData), offset);
 
-    return new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+    return new Blob([combined], { type: 'application/octet-stream' });
   };
 
   const decryptFile = async (encryptedBlob: Blob, key: CryptoKey, isJoyXoraFile: boolean = true) => {
-    if (isJoyXoraFile) {
-      const text = await encryptedBlob.text();
-      const metadata = JSON.parse(text);
-
-      const iv = new Uint8Array(metadata.iv);
-      const encryptedData = new Uint8Array(metadata.data);
-
+    const buffer = await encryptedBlob.arrayBuffer();
+    const data = new Uint8Array(buffer);
+    
+    // Check format
+    const possibleLength = new Uint32Array(data.slice(0, 4).buffer)[0];
+    
+    if (possibleLength > 0 && possibleLength < 10000) {
+      // Binary format
+      const metadataLength = possibleLength;
+      const metadataBytes = data.slice(4, 4 + metadataLength);
+      const metadataJson = new TextDecoder().decode(metadataBytes);
+      const metadata = JSON.parse(metadataJson);
+      
+      let offset = 4 + metadataLength;
+      const salt = data.slice(offset, offset + 16);
+      offset += 16;
+      const iv = data.slice(offset, offset + 12);
+      offset += 12;
+      const encryptedData = data.slice(offset);
+      
       let decryptedData = await crypto.subtle.decrypt(
         { name: 'AES-GCM', iv: iv },
         key,
@@ -444,26 +543,32 @@ const FileEncryption = () => {
         fileType: metadata.fileType
       };
     } else {
-      const encryptedArray = new Uint8Array(await encryptedBlob.arrayBuffer());
+      // Legacy JSON format
+      try {
+        const text = await encryptedBlob.text();
+        const metadata = JSON.parse(text);
 
-      if (encryptedArray.length < 12) {
+        const iv = new Uint8Array(metadata.iv);
+        const encryptedData = new Uint8Array(metadata.data);
+
+        let decryptedData = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: iv },
+          key,
+          encryptedData
+        );
+
+        if (metadata.compressed) {
+          decryptedData = await decompressDataChunked(decryptedData);
+        }
+
+        return {
+          data: decryptedData,
+          fileName: metadata.fileName,
+          fileType: metadata.fileType
+        };
+      } catch {
         throw new Error('Invalid encrypted file format');
       }
-
-      const iv = encryptedArray.slice(0, 12);
-      const encryptedData = encryptedArray.slice(12);
-
-      const decryptedData = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: iv },
-        key,
-        encryptedData
-      );
-
-      return {
-        data: decryptedData,
-        fileName: 'decrypted_file',
-        fileType: 'application/octet-stream'
-      };
     }
   };
 
@@ -568,11 +673,24 @@ const FileEncryption = () => {
         let metadata: any = null;
         
         try {
-          const text = await blob.text();
-          const parsed = JSON.parse(text);
-          isJoyXoraFile = parsed.version && parsed.algorithm;
-          if (isJoyXoraFile) {
-            metadata = parsed;
+          const buffer = await blob.arrayBuffer();
+          const data = new Uint8Array(buffer);
+          const possibleLength = new Uint32Array(data.slice(0, 4).buffer)[0];
+          
+          if (possibleLength > 0 && possibleLength < 10000) {
+            // Binary format
+            const metadataBytes = data.slice(4, 4 + possibleLength);
+            const metadataJson = new TextDecoder().decode(metadataBytes);
+            metadata = JSON.parse(metadataJson);
+            isJoyXoraFile = true;
+          } else {
+            // Try JSON format
+            const text = await blob.text();
+            const parsed = JSON.parse(text);
+            isJoyXoraFile = parsed.version && parsed.algorithm;
+            if (isJoyXoraFile) {
+              metadata = parsed;
+            }
           }
         } catch {
           isJoyXoraFile = false;
@@ -585,11 +703,30 @@ const FileEncryption = () => {
         let key: CryptoKey;
 
         if (isJoyXoraFile && metadata) {
-          const salt = new Uint8Array(metadata.salt);
+          // For binary format, salt is embedded in file
+          // For JSON format, salt is in metadata
+          let salt: Uint8Array;
+          
+          if (metadata.version === 2) {
+            // Binary format - will read salt from file
+            salt = new Uint8Array(16); // Placeholder, actual salt read in decrypt function
+          } else {
+            // JSON format
+            salt = new Uint8Array(metadata.salt);
+          }
 
           if (metadata.keyDerivation === 'random') {
             key = await importRandomKey(randomKey);
           } else {
+            // For binary format, we'll re-derive with embedded salt during decryption
+            if (metadata.version === 2) {
+              // Read salt from file for key derivation
+              const buffer = await blob.arrayBuffer();
+              const data = new Uint8Array(buffer);
+              const metadataLength = new Uint32Array(data.slice(0, 4).buffer)[0];
+              const offset = 4 + metadataLength;
+              salt = data.slice(offset, offset + 16);
+            }
             key = await deriveKeyFromPassword(passphrase, salt, metadata.keyDerivation);
           }
         } else {
@@ -1187,4 +1324,3 @@ const FileEncryption = () => {
 };
 
 export default FileEncryption;
-
