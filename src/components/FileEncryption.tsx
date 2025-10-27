@@ -363,7 +363,6 @@ const FileEncryption = () => {
   const decryptFileChunked = async (
     encryptedBlob: Blob, 
     key: CryptoKey, 
-    isJoyXoraFile: boolean = true,
     onProgress?: (progress: number) => void
   ) => {
     if (onProgress) onProgress(10);
@@ -506,7 +505,7 @@ const FileEncryption = () => {
     return new Blob([combined], { type: 'application/octet-stream' });
   };
 
-  const decryptFile = async (encryptedBlob: Blob, key: CryptoKey, isJoyXoraFile: boolean = true) => {
+  const decryptFile = async (encryptedBlob: Blob, key: CryptoKey) => {
     const buffer = await encryptedBlob.arrayBuffer();
     const data = new Uint8Array(buffer);
     
@@ -648,139 +647,131 @@ const FileEncryption = () => {
   };
 
   const handleDecrypt = async () => {
-    if (files.length === 0) return;
-    if (keyDerivation !== 'random' && !passphrase) {
-      alert('Please enter the decryption passphrase');
-      return;
-    }
-    if (keyDerivation === 'random' && !randomKey) {
-      alert('Please enter the decryption key');
-      return;
-    }
+  if (files.length === 0) return;
+  if (keyDerivation !== 'random' && !passphrase) {
+    alert('Please enter the decryption passphrase');
+    return;
+  }
+  if (keyDerivation === 'random' && !randomKey) {
+    alert('Please enter the decryption key');
+    return;
+  }
 
-    setProcessing(true);
-    setMode('decrypt');
-    const decrypted: {blob: Blob, name: string}[] = [];
+  setProcessing(true);
+  setMode('decrypt');
+  const decrypted: {blob: Blob, name: string}[] = [];
 
-    try {
-      for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
-        const file = files[fileIndex];
-        setCurrentFileIndex(fileIndex + 1);
+  try {
+    for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+      const file = files[fileIndex];
+      setCurrentFileIndex(fileIndex + 1);
+      
+      const blob = new Blob([file.data]);
+
+      let isJoyXoraFile = false;
+      let metadata: any = null;
+      
+      try {
+        const buffer = await blob.arrayBuffer();
+        const data = new Uint8Array(buffer);
+        const possibleLength = new Uint32Array(data.slice(0, 4).buffer)[0];
         
-        const blob = new Blob([file.data]);
-
-        let isJoyXoraFile = false;
-        let metadata: any = null;
-        
-        try {
-          const buffer = await blob.arrayBuffer();
-          const data = new Uint8Array(buffer);
-          const possibleLength = new Uint32Array(data.slice(0, 4).buffer)[0];
-          
-          if (possibleLength > 0 && possibleLength < 10000) {
-            // Binary format
-            const metadataBytes = data.slice(4, 4 + possibleLength);
-            const metadataJson = new TextDecoder().decode(metadataBytes);
-            metadata = JSON.parse(metadataJson);
-            isJoyXoraFile = true;
-          } else {
-            // Try JSON format
-            const text = await blob.text();
-            const parsed = JSON.parse(text);
-            isJoyXoraFile = parsed.version && parsed.algorithm;
-            if (isJoyXoraFile) {
-              metadata = parsed;
-            }
+        if (possibleLength > 0 && possibleLength < 10000) {
+          // Binary format
+          const metadataBytes = data.slice(4, 4 + possibleLength);
+          const metadataJson = new TextDecoder().decode(metadataBytes);
+          metadata = JSON.parse(metadataJson);
+          isJoyXoraFile = true;
+        } else {
+          // Try JSON format
+          const text = await blob.text();
+          const parsed = JSON.parse(text);
+          isJoyXoraFile = parsed.version && parsed.algorithm;
+          if (isJoyXoraFile) {
+            metadata = parsed;
           }
-        } catch {
-          isJoyXoraFile = false;
         }
+      } catch {
+        isJoyXoraFile = false;
+      }
 
-        const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024;
-        const isLarge = file.size > LARGE_FILE_THRESHOLD;
-        setIsLargeFile(isLarge);
+      const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024;
+      const isLarge = file.size > LARGE_FILE_THRESHOLD;
+      setIsLargeFile(isLarge);
 
-        let key: CryptoKey;
+      let key: CryptoKey;
 
-        if (isJoyXoraFile && metadata) {
-          // For binary format, salt is embedded in file
-          // For JSON format, salt is in metadata
-          let salt: Uint8Array;
-          
+      if (isJoyXoraFile && metadata) {
+        if (metadata.keyDerivation === 'random') {
+          key = await importRandomKey(randomKey);
+        } else {
+          // Derive key with salt from file
           if (metadata.version === 2) {
-            // Binary format - will read salt from file
-            salt = new Uint8Array(16); // Placeholder, actual salt read in decrypt function
+            // Binary format - read salt from file
+            const buffer = await blob.arrayBuffer();
+            const data = new Uint8Array(buffer);
+            const metadataLength = new Uint32Array(data.slice(0, 4).buffer)[0];
+            const offset = 4 + metadataLength;
+            const salt = data.slice(offset, offset + 16);
+            key = await deriveKeyFromPassword(passphrase, salt, metadata.keyDerivation);
           } else {
-            // JSON format
-            salt = new Uint8Array(metadata.salt);
-          }
-
-          if (metadata.keyDerivation === 'random') {
-            key = await importRandomKey(randomKey);
-          } else {
-            // For binary format, we'll re-derive with embedded salt during decryption
-            if (metadata.version === 2) {
-              // Read salt from file for key derivation
-              const buffer = await blob.arrayBuffer();
-              const data = new Uint8Array(buffer);
-              const metadataLength = new Uint32Array(data.slice(0, 4).buffer)[0];
-              const offset = 4 + metadataLength;
-              salt = data.slice(offset, offset + 16);
-            }
+            // JSON format - salt in metadata
+            const salt = new Uint8Array(metadata.salt);
             key = await deriveKeyFromPassword(passphrase, salt, metadata.keyDerivation);
           }
-        } else {
-          const salt = crypto.getRandomValues(new Uint8Array(16));
-
-          if (keyDerivation === 'random') {
-            key = await importRandomKey(randomKey);
-          } else {
-            key = await deriveKeyFromPassword(passphrase, salt, keyDerivation);
-          }
         }
+      } else {
+        // Non-JoyXora file
+        const salt = crypto.getRandomValues(new Uint8Array(16));
 
-        let decryptedData;
-        
-        if (isLarge) {
-          decryptedData = await decryptFileChunked(
-            blob, 
-            key, 
-            isJoyXoraFile,
-            (progress) => setEncryptionProgress(progress)
-          );
+        if (keyDerivation === 'random') {
+          key = await importRandomKey(randomKey);
         } else {
-          decryptedData = await decryptFile(blob, key, isJoyXoraFile);
-        }
-
-        const decryptedBlob = new Blob([decryptedData.data], { type: decryptedData.fileType });
-        const filename = isJoyXoraFile ? decryptedData.fileName : `decrypted_${file.name}`;
-
-        decrypted.push({
-          blob: decryptedBlob,
-          name: filename
-        });
-        
-        setEncryptionProgress(0);
-      }
-
-      setProcessedFiles(decrypted);
-      setIsLargeFile(false);
-      setCurrentFileIndex(0);
-
-      if (secureDelete) {
-        setFiles([]);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+          key = await deriveKeyFromPassword(passphrase, salt, keyDerivation);
         }
       }
 
-    } catch (error) {
-      console.error('Decryption failed:', error);
-      alert('Decryption failed. Check your passphrase/key and encryption settings.');
+      let decryptedData;
+      
+      if (isLarge) {
+        decryptedData = await decryptFileChunked(
+          blob, 
+          key, 
+          (progress) => setEncryptionProgress(progress)
+        );
+      } else {
+        decryptedData = await decryptFile(blob, key);
+      }
+
+      const decryptedBlob = new Blob([decryptedData.data], { type: decryptedData.fileType });
+      const filename = isJoyXoraFile ? decryptedData.fileName : `decrypted_${file.name}`;
+
+      decrypted.push({
+        blob: decryptedBlob,
+        name: filename
+      });
+      
+      setEncryptionProgress(0);
     }
-    
-    setProcessing(false);
-  };
+
+    setProcessedFiles(decrypted);
+    setIsLargeFile(false);
+    setCurrentFileIndex(0);
+
+    if (secureDelete) {
+      setFiles([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+
+  } catch (error) {
+    console.error('Decryption failed:', error);
+    alert('Decryption failed. Check your passphrase/key and encryption settings.');
+  }
+  
+  setProcessing(false);
+};
 
   const downloadFile = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
