@@ -839,7 +839,32 @@ const FileEncryption = () => {
           <span>VAULT ({vaultEntries.length})</span>
         </button>
       </div>
-
+   {isUploading && (
+  <div className="mb-4 sm:mb-6 p-4 bg-gray-800/50 border border-joyxora-green/30 rounded-lg">
+    <div className="flex items-center gap-3 mb-3">
+      <Loader className="w-5 h-5 text-joyxora-green animate-spin" />
+      <div className="flex-1">
+        <p className="text-joyxora-green font-semibold text-sm">
+          Loading files...
+        </p>
+        <p className="text-green-400/60 text-xs">
+          Please wait while we process your file(s)
+        </p>
+      </div>
+    </div>
+    
+    <div className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+      <div
+        className="absolute top-0 left-0 h-full bg-joyxora-green transition-all duration-300"
+        style={{ width: `${uploadProgress}%` }}
+      />
+    </div>
+    
+    <p className="text-joyxora-green text-xs mt-2 text-center font-mono">
+      {Math.round(uploadProgress)}%
+    </p>
+  </div>
+)}
       {showVault && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-gray-900 border-2 border-joyxora-green rounded-xl max-w-4xl w-full max-h-[90vh] sm:max-h-[80vh] overflow-hidden flex flex-col shadow-xl shadow-joyxora-green/20">
@@ -915,32 +940,6 @@ const FileEncryption = () => {
                 </div>
               )}
             </div>
-            {isUploading && (
-  <div className="mb-4 sm:mb-6 p-4 bg-gray-800/50 border border-joyxora-green/30 rounded-lg">
-    <div className="flex items-center gap-3 mb-3">
-      <Loader className="w-5 h-5 text-joyxora-green animate-spin" />
-      <div className="flex-1">
-        <p className="text-joyxora-green font-semibold text-sm">
-          Loading files...
-        </p>
-        <p className="text-green-400/60 text-xs">
-          Please wait while we process your file(s)
-        </p>
-      </div>
-    </div>
-
-    <div className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-      <div
-        className="absolute top-0 left-0 h-full bg-joyxora-green transition-all duration-300"
-        style={{ width: `${uploadProgress}%` }}
-      />
-    </div>
-
-    <p className="text-joyxora-green text-xs mt-2 text-center font-mono">
-      {Math.round(uploadProgress)}%
-    </p>
-  </div>
-)}
 
             {vaultEntries.length > 0 && (
               <div className="p-4 sm:p-6 border-t border-joyxora-green/30">
