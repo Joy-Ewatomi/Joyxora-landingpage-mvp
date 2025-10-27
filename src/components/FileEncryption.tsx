@@ -32,6 +32,8 @@ const FileEncryption = () => {
   const [encryptionProgress, setEncryptionProgress] = useState<number>(0);
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
   const [isLargeFile, setIsLargeFile] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const algorithms = [
     { value: 'AES-256-GCM', label: 'AES-256-GCM (Recommended)', desc: 'NIST approved, authenticated encryption' },
@@ -124,27 +126,52 @@ const FileEncryption = () => {
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    const fileDataArray: FileData[] = [];
+  const selectedFiles = Array.from(e.target.files || []);
+  
+  if (selectedFiles.length === 0) return;
+  
+  setIsUploading(true);
+  setUploadProgress(0);
+  
+  const fileDataArray: FileData[] = [];
 
-    if (selectedFiles.length > 0) {
-      await detectFileMode(selectedFiles[0]);
-    }
+  // Detect mode from first file
+  if (selectedFiles.length > 0) {
+    await detectFileMode(selectedFiles[0]);
+    setUploadProgress(10);
+  }
 
-    for (const file of selectedFiles) {
-      const data = await file.arrayBuffer();
-      fileDataArray.push({
-        name: file.name,
-        size: file.size,
-        type: file.type || 'application/octet-stream',
-        data: data,
-        file: file
-      });
-    }
+  // Process files with progress
+  for (let i = 0; i < selectedFiles.length; i++) {
+    const file = selectedFiles[i];
+    
+    // Show which file we're loading
+    setUploadProgress(10 + (i / selectedFiles.length) * 80);
+    
+    const data = await file.arrayBuffer();
+    
+    fileDataArray.push({
+      name: file.name,
+      size: file.size,
+      type: file.type || 'application/octet-stream',
+      data: data,
+      file: file
+    });
+    
+    // Small delay to let UI update
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
 
-    setFiles(fileDataArray);
-    setProcessedFiles([]);
-  };
+  setUploadProgress(100);
+  setFiles(fileDataArray);
+  setProcessedFiles([]);
+  
+  // Hide upload progress after a moment
+  setTimeout(() => {
+    setIsUploading(false);
+    setUploadProgress(0);
+  }, 500);
+};
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -888,6 +915,32 @@ const FileEncryption = () => {
                 </div>
               )}
             </div>
+            {isUploading && (
+  <div className="mb-4 sm:mb-6 p-4 bg-gray-800/50 border border-joyxora-green/30 rounded-lg">
+    <div className="flex items-center gap-3 mb-3">
+      <Loader className="w-5 h-5 text-joyxora-green animate-spin" />
+      <div className="flex-1">
+        <p className="text-joyxora-green font-semibold text-sm">
+          Loading files...
+        </p>
+        <p className="text-green-400/60 text-xs">
+          Please wait while we process your file(s)
+        </p>
+      </div>
+    </div>
+
+    <div className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+      <div
+        className="absolute top-0 left-0 h-full bg-joyxora-green transition-all duration-300"
+        style={{ width: `${uploadProgress}%` }}
+      />
+    </div>
+
+    <p className="text-joyxora-green text-xs mt-2 text-center font-mono">
+      {Math.round(uploadProgress)}%
+    </p>
+  </div>
+)}
 
             {vaultEntries.length > 0 && (
               <div className="p-4 sm:p-6 border-t border-joyxora-green/30">
