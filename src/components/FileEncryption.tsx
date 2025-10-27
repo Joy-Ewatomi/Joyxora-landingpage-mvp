@@ -387,7 +387,6 @@ const FileEncryption = () => {
       
       // Read salt (16 bytes after metadata)
       let offset = 4 + metadataLength;
-      const salt = data.slice(offset, offset + 16);
       offset += 16;
       
       // Read IV (12 bytes)
@@ -520,7 +519,6 @@ const FileEncryption = () => {
       const metadata = JSON.parse(metadataJson);
       
       let offset = 4 + metadataLength;
-      const salt = data.slice(offset, offset + 16);
       offset += 16;
       const iv = data.slice(offset, offset + 12);
       offset += 12;
