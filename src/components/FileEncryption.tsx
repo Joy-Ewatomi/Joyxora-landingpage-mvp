@@ -645,7 +645,7 @@ const FileEncryption = () => {
         
         encrypted.push({
           blob: encryptedBlob,
-          name: `${file.name}.encrypted`
+          name: `${file.name}.joyxora_enc`
         });
 
         const keyInfo = keyDerivation === 'random' ? randomKey : 'password-protected';

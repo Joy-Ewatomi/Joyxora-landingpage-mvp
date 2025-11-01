@@ -1,5 +1,5 @@
 // ~/.../src/pages/Dashboard.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Lock,
@@ -8,135 +8,191 @@ import {
   Terminal,
   Shield,
   Archive,
-  Settings,
   Menu as MenuIcon,
   X as XIcon,
   ChevronDown,
   ChevronRight,
+  FileText,
+  FolderLock,
+  Key
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import FileEncryption from "../components/FileEncryption.tsx";
+import FolderEncryption from "../components/FolderEncryption";
+import TextEncryption from "../components/TextEncryption";
+import PasswordManager from "../components/PasswordManager";
 
-type FeatureType = 'files/folder/apps' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
-
-const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [activeFeature, setActiveFeature] = useState<FeatureType>('files/folder/apps');
-  const [currentTime, setCurrentTime] = useState(new Date());
+type FeatureType = 'files' | 'folders' | 'text' | 'passwords' | 'messages' | 'chatbot' | 'terminal' | 'vault' | 'profile';
+                                                                                           
+const Dashboard: React.FC = () => { 
+ const navigate = useNavigate();                                                          
+const [activeFeature, setActiveFeature] = useState<FeatureType>('files');
+ 
+ const handleBackToHome = ()  => {
+ navigate('/');
+ };
 
   // mobile drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
   // which menu item accordion is open (for dropdown/accordion behavior)
   const [openMenu, setOpenMenu] = useState<FeatureType | null>(null);
-
-  useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('joyxora_token');
-    const userData = localStorage.getItem('joyxora_user');
-
-    if (!token) {
-      navigate('/');
-      return;
-    }
-
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('joyxora_token');
-    localStorage.removeItem('joyxora_user');
-    navigate('/');
-  };
-
   const menuItems: {
     id: FeatureType;
     label: string;
     sublabel: string;
     icon: any;
+    available: boolean;
     actions?: { id: string; label: string; onClick?: () => void }[];
   }[] = [
     {
-      id: 'files/folder/apps',
+      id: 'files',
       label: 'FILE ENCRYPT',
       sublabel: 'Secure your files',
       icon: Lock,
+      available: true,
       actions: [
         { id: 'open', label: 'Open' },
         { id: 'upload', label: 'Upload' },
       ],
     },
     {
+    id:'folders',
+    label: 'Folder Encryption',
+    sublabel: 'Encrypt entire folders',
+    icon: FolderLock,
+    available: true,
+    actions: [
+     {id: 'open', label: 'Open'},
+     {id: 'upload', label: 'Upload'},
+    ],
+    },
+    {
+    id: 'text',
+    label: 'Text Encryption',
+    sublabel: 'Encrypt text Messages',
+    icon: FileText,
+    available: true,
+    actions: [
+      {id: 'open', label:'Open'}
+    ],
+    },
+    {
+    id: 'passwords',
+    label: 'password Manager',
+    sublabel: 'Manage encryption passwords',
+    icon: Key,
+    available: true,
+    actions: [
+    {id: 'open', label: 'Open'}
+    ],
+    },
+    {
       id: 'messages',
       label: 'SECURE CHAT',
       sublabel: 'Anonymous messaging',
       icon: MessageSquare,
-      actions: [{ id: 'open', label: 'Open' }],
+      available: false,
+      actions: [
+      { id: 'open', label: 'Open' } 
+      ],
     },
     {
       id: 'chatbot',
       label: 'AI ASSISTANT',
       sublabel: 'Security advisor',
       icon: Bot,
-      actions: [{ id: 'open', label: 'Open' }],
+      available: false,
+      actions: [
+      {id: 'open', label: 'Open' }
+    ],
     },
     {
       id: 'vault',
       label: 'APP VAULT',
       sublabel: 'Hide applications',
       icon: Archive,
-      actions: [{ id: 'open', label: 'Open' }],
+      available: false,
+      actions: [
+      { id: 'open', label: 'Open' }
+    ],
     },
     {
       id: 'terminal',
       label: 'TERMINAL',
       sublabel: 'Command interface',
       icon: Terminal,
-      actions: [{ id: 'open', label: 'Open' }],
-    },
-    {
-      id: 'profile',
-      label: 'CONFIG',
-      sublabel: 'System settings',
-      icon: Settings,
-      actions: [{ id: 'open', label: 'Open' }],
+      available: false,
+      actions: [
+      { id: 'open', label: 'Open' }
+    ],
     },
   ];
 
   const renderContent = () => {
     switch (activeFeature) {
-      case 'files/folder/apps':
+      case 'files':
         return <FileEncryption />;
+      case 'folders':
+        return <FolderEncryption />;
+      case 'text':
+        return <TextEncryption />;
+      case 'passwords':
+        return <PasswordManager />;
       case 'messages':
-        return <Messaging />;
+        return (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center max-w-md">
+              <MessageSquare className="w-16 h-16 text-joyxora-green/50 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-joyxora-green mb-2">Secure Chat</h3>
+              <p className="text-green-400/70 mb-4">
+                End-to-end encrypted messaging coming soon.
+              </p>
+              <p className="text-sm text-green-400/50">
+                Pro users get early access when it launches.
+              </p>
+            </div>
+          </div>
+        );
       case 'chatbot':
-        return <ChatbotView />;
-      case 'terminal':
-        return <TerminalView />;
+        return (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center max-w-md">
+              <Bot className="w-16 h-16 text-joyxora-green/50 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-joyxora-green mb-2">AI Security Assistant</h3>
+              <p className="text-green-400/70 mb-4">
+                AI-powered security advisor coming soon.
+              </p>
+            </div>
+          </div>
+        );
       case 'vault':
-        return <Vault />;
-      case 'profile':
-        return <ProfileView user={user} onLogout={handleLogout} />;
+        return (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center max-w-md">
+              <Archive className="w-16 h-16 text-joyxora-green/50 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-joyxora-green mb-2">App Vault</h3>
+              <p className="text-green-400/70 mb-4">
+                Hide and encrypt applications coming soon.
+              </p>
+            </div>
+          </div>
+        );
+      case 'terminal':
+       return (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center max-w-md">
+              <Terminal className="w-16 h-16 text-joyxora-green/50 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-joyxora-green mb-2">Terminal</h3>
+              <p className="text-green-400/70 mb-4">
+                Command interface for advanced users coming soon.
+              </p>
+            </div>
+          </div>
+        );
       default:
         return <FileEncryption />;
     }
   };
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-joyxora-dark flex items-center justify-center">
-        <div className="text-joyxora-green text-xl font-mono">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-joyxora-dark text-joyxora-green font-mono">
       {/* Header */}
@@ -243,7 +299,22 @@ const Dashboard: React.FC = () => {
               </div>
             );
           })}
-
+       {/* Upgrade Prompt */}
+          <div className="p-4 m-4 bg-gradient-to-br from-joyxora-green/10 to-emerald-900/10 border-2 border-joyxora-green/30 rounded-xl">
+            <h4 className="font-bold text-joyxora-green mb-2 flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              JoyXora Pro
+            </h4>
+            <p className="text-xs text-green-400/70 mb-3">
+              Unlimited files, 100MB limit, priority support, and early access to all new features.
+            </p>
+            <button
+              onClick={() => navigate('/?upgrade=true')}
+              className="w-full px-4 py-2 bg-gradient-to-r from-joyxora-green to-emerald-400 text-gray-900 rounded-lg font-bold text-sm hover:shadow-lg hover:shadow-joyxora-green/50 transition-all"
+            >
+              Upgrade - ₦5,000/month
+            </button>
+          </div>
           {/* Status Panel */}
           <div className="mt-6 bg-joyxora-dark border border-joyxora-green rounded p-3">
             <div className="flex justify-between items-center mb-2">
@@ -400,23 +471,11 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="flex gap-2 sm:gap-3 md:gap-4 lg:gap-5 ml-auto">
               <button
-                onClick={handleLogout}
+                onClick={handleBackToHome}
                 className="text-red-400 hover:text-red-300 transition-colors text-center"
               >
                 🔒 LOGOUT
-              </button>
-              <span>
-                {currentTime.toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                  hour12: true
-                })} | {currentTime.toLocaleDateString('en-US', {
-                  month: '2-digit',
-                  day: '2-digit',
-                  year: 'numeric'
-                })}
-              </span>
+                </button>
             </div>
           </div>
         </main>
@@ -424,185 +483,5 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
-
-const Messaging = () => (
-  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
-    <div className="flex items-center gap-3 mb-4">
-      <MessageSquare className="w-6 h-6 text-joyxora-green" />
-      <h2 className="text-xl font-bold">SECURE MESSAGING PROTOCOL</h2>
-    </div>
-    <p className="text-xs text-joyxora-green mb-6">
-      &gt; END-TO-END ENCRYPTED COMMUNICATIONS
-    </p>
-    <div className="space-y-4">
-      <div className="bg-joyxora-dark border border-joyxora-green rounded-lg p-4">
-        <p className="text-sm text-joyxora-green mb-4">Generate anonymous invite link for secure communication</p>
-        <button className="w-full px-6 py-3 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
-          GENERATE INVITE LINK
-        </button>
-      </div>
-      <div className="border-2 border-dashed border-joyxora-green rounded-lg p-12 text-center">
-        <MessageSquare className="w-16 h-16 mx-auto text-joyxora-green mb-4" />
-        <p className="text-joyxora-green">No active conversations</p>
-        <p className="text-xs text-joyxora-green mt-2">Share invite link to start messaging</p>
-      </div>
-    </div>
-  </div>
-);
-
-const ChatbotView = () => (
-  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark h-full flex flex-col">
-    <div className="flex items-center gap-3 mb-4">
-      <Bot className="w-6 h-6 text-joyxora-green" />
-      <h2 className="text-xl font-bold">AI SECURITY ASSISTANT</h2>
-    </div>
-    <p className="text-xs text-joyxora-green mb-6">
-      &gt; INTELLIGENT THREAT ANALYSIS & RECOMMENDATIONS
-    </p>
-
-    <div className="flex-1 bg-joyxora-dark border border-joyxora-green rounded-lg p-4 mb-4 overflow-auto">
-      <div className="space-y-4">
-        <div className="bg-joyxora-dark border border-joyxora-green rounded-lg p-4 max-w-md">
-          <p className="text-sm text-joyxora-green">
-            <span className="text-joyxora-green font-bold">[ASSISTANT]:</span> Security protocols initialized. How can I assist you with encryption today?
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div className="flex gap-2">
-      <input
-        type="text"
-        placeholder="Enter command or query..."
-        className="flex-1 px-2 py-1 sm:px-4 sm:py-3  md:px-4 md:py-3 lg:px-4 lg:py-3 bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green placeholder-joyxora-green"
-      />
-      <button className="px-0 py-0 sm:px-6 sm:py-3  md:px-6 md:py-3 lg:px-7 lg:py-4 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
-        SEND
-      </button>
-    </div>
-  </div>
-);
-
-const TerminalView = () => (
-  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
-    <div className="flex items-center gap-3 mb-4">
-      <Terminal className="w-6 h-6 text-joyxora-green" />
-      <h2 className="text-xl font-bold">COMMAND INTERFACE</h2>
-    </div>
-    <p className="text-xs text-joyxora-green mb-6">
-      &gt; DIRECT SYSTEM ACCESS • TYPE 'HELP' FOR COMMANDS
-    </p>
-
-
-    <div className="bg-joyxora-dark border-2 border-joyxora-green rounded-lg p-6 font-mono text-sm h-[400px] sm:h-[500px] md:h-[500px] lg:h-[600px] overflow-auto">
-
-      <div className="text-joyxora-green">
-        <p className="mb-2">JOYXORA Terminal v2.1</p>
-        <p className="mb-4 text-joyxora-green">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
-        <div className="space-y-2">
-          <div>
-            <span className="text-joyxora-green">root@joyxora:~$</span>
-            <span className="text-joyxora-green ml-2">help</span>
-          </div>
-          <div className="ml-4 text-joyxora-green space-y-1">
-            <p>Available commands:</p>
-            <p className="ml-4">• encrypt [file] - Encrypt specified file</p>
-            <p className="ml-4">• decrypt [file] - Decrypt specified file</p>
-            <p className="ml-4">• list - Display encrypted vault contents</p>
-            <p className="ml-4">• scan - Run security scan</p>
-            <p className="ml-4">• status - Show system status</p>
-            <p className="ml-4">• clear - Clear terminal screen</p>
-          </div>
-          <div className="mt-4">
-            <span className="text-joyxora-green">root@joyxora:~$</span>
-            <span className="text-joyxora-green ml-2 animate-pulse">_</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-const Vault = () => (
-  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
-    <div className="flex items-center gap-3 mb-4">
-      <Archive className="w-6 h-6 text-joyxora-green" />
-      <h2 className="text-xl font-bold">APPLICATION VAULT</h2>
-    </div>
-    <p className="text-xs text-joyxora-green mb-6">
-      &gt; PROTECTED APPLICATION STORAGE
-    </p>
-    <div className="border-2 border-dashed border-joyxora-green rounded-lg p-16 text-center">
-      <Shield className="w-16 h-16 mx-auto text-joyxora-green mb-4" />
-      <p className="text-lg font-bold mb-2">VAULT IS EMPTY</p>
-      <p className="text-xs text-joyxora-green">No applications are currently protected</p>
-      <button className="mt-6 px-4 py-2 sm:px-6 sm:py-6 md:px-6 md:py-6 lg:px-6 lg:py-6 bg-joyxora-green text-joyxora-dark rounded hover:bg-joyxora-green transition-colors font-bold">
-        ADD APPLICATIONS
-      </button>
-    </div>
-  </div>
-);
-
-const ProfileView = ({ user, onLogout }: { user: any; onLogout: () => void }) => (
-  <div className="border-2 border-joyxora-green rounded-lg p-6 bg-joyxora-dark">
-    <div className="flex items-center gap-3 mb-4">
-      <Settings className="w-6 h-6 text-joyxora-green" />
-      <h2 className="text-xl font-bold">SYSTEM CONFIGURATION</h2>
-    </div>
-    <p className="text-xs text-joyxora-green mb-6">
-      &gt; USER PROFILE & SYSTEM SETTINGS
-    </p>
-
-    <div className="space-y-6">
-      <div className="flex items-center gap-4 pb-6 border-b border-joyxora-green">
-        <div className="w-20 h-20 bg-joyxora-green rounded flex items-center justify-center text-3xl text-joyxora-dark font-bold">
-          {user.email?.[0]?.toUpperCase() || 'U'}
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-joyxora-green">{user.username || 'User'}</h3>
-          <p className="text-joyxora-green text-sm">{user.email}</p>
-          <p className="text-joyxora-green text-xs mt-1">ID: JX-{user.id || '12345'}</p>
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-xs font-bold text-joyxora-green mb-2">USERNAME</label>
-        <input
-          type="text"
-          className="w-full px-4 py-2 bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green"
-          value={user.username || ''}
-          readOnly
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs font-bold text-joyxora-green mb-2">EMAIL ADDRESS</label>
-        <input
-          type="email"
-          className="w-full px-4 py-2 bg-joyxora-dark text-joyxora-green border border-joyxora-green rounded focus:outline-none focus:border-joyxora-green"
-          value={user.email || ''}
-          readOnly
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs font-bold text-joyxora-green mb-2">SECURITY LEVEL</label>
-        <div className="flex items-center gap-2">
-          <div className="flex-1 bg-joyxora-dark rounded-full h-2">
-            <div className="bg-joyxora-green h-2 rounded-full" style={{ width: '100%' }}></div>
-          </div>
-          <span className="text-xs text-red-400">MAXIMUM</span>
-        </div>
-      </div>
-
-      <button
-        onClick={onLogout}
-        className="w-full px-6 py-3 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition border border-red-500/30 font-bold"
-      >
-        TERMINATE SESSION
-      </button>
-    </div>
-  </div>
-);
-
 export default Dashboard;
 
