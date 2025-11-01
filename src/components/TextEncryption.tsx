@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FileText, Lock, Unlock, Shield, AlertCircle, Check, Copy, Trash2, Key } from 'lucide-react';
 
 type KeyDerivation = 'PBKDF2' | 'Argon2id' | 'scrypt' | 'random';

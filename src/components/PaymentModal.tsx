@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Shield, Check } from 'lucide-react';
+import { X, Mail, Shield} from 'lucide-react';
 import PaymentButton from './PaymentButton';
 
 interface PaymentModalProps {

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { FolderOpen, Lock, Unlock, Shield, AlertCircle, Check, Loader, Key, Copy, Download, Trash2, Archive } from 'lucide-react';
+import { FolderOpen, Lock, Unlock, Shield, AlertCircle, Check, Loader, Key, Copy, Download, Trash2} from 'lucide-react';
 import JSZip from 'jszip';
 
 type Algorithm = 'AES-256-GCM' | 'AES-256-CBC' | 'ChaCha20-Poly1305';
@@ -138,7 +138,6 @@ const FolderEncryption = () => {
 
     if (selectedFiles.length === 1 && selectedFiles[0].name.endsWith('.joyxora_folder')) {
       await detectFileMode(selectedFiles[0]);
-      const data = await selectedFiles[0].arrayBuffer();
       setFolder({
         files: [selectedFiles[0]],
         totalSize: selectedFiles[0].size,
@@ -476,17 +475,17 @@ const handleDecrypt = async () => {
             &gt; SELECT_FOLDER_OR_ENCRYPTED_ARCHIVE • MILITARY_GRADE_PROTECTION
           </p>
         </div>
-
-        <input
-          ref={folderInputRef}
-          type="file"
-          multiple
-          webkitdirectory=""
-          directory=""
-          onChange={handleFolderSelect}
-          className="hidden"
-        />
-
+         <input
+  ref={folderInputRef}
+  type="file"
+  multiple
+  onChange={handleFolderSelect}
+  className="hidden"
+  // @ts-ignore - webkitdirectory is not in types but works
+  webkitdirectory=""
+  directory=""
+/>
+        
         <div
           onClick={() => folderInputRef.current?.click()}
           className="border-2 border-dashed border-joyxora-green/30 rounded-lg p-12 text-center cursor-pointer hover:border-joyxora-green/50 transition-all mb-6 relative bg-gray-800/30"

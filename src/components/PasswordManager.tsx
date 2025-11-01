@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Key, Plus, Trash2, Eye, EyeOff, Copy, Check, AlertCircle, Edit2, Save, X } from 'lucide-react';
+import { Key, Plus, Trash2, Copy, Check, AlertCircle, Edit2, Save, X } from 'lucide-react';
 
 interface PasswordEntry {
   id: string;
