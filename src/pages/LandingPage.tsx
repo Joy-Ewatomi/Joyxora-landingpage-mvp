@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import PaymentModal from '../components/PaymentModal';
 import { Shield, Lock, Zap, Check, ArrowRight, Globe, Smartphone, Server } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
